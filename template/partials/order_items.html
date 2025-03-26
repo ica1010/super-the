@@ -314,11 +314,10 @@
     {% endif %}
 </aside>
 
-
 <script>
     function printReceipt() {
         if (!qz.websocket.isActive()) {
-            console.log("Tentative de connexion à QZ Tray...");
+            console.log("Connexion à QZ Tray...");
             qz.websocket.connect().then(startPrint).catch(handleQZError);
         } else {
             startPrint();
@@ -327,20 +326,39 @@
 
     function startPrint() {
         qz.printers.getDefault().then((printer) => {
-            console.log("Imprimante par défaut détectée :", printer);
+            console.log("Imprimante détectée :", printer);
             var config = qz.configs.create(printer);
 
-            // Récupérer le contenu avec HTML et styles
-            var receiptHtml = document.querySelector("#reciept-85").outerHTML;
+            // 1️⃣ **Ticket détaillé (Facture)**
+            var receiptHtml = document.querySelector("#print-receipt").outerHTML;
+            var ticketData = [{ type: 'html', format: 'plain', data: receiptHtml }];
 
-            // Convertir HTML en format imprimable
-            var data = [
-                { type: 'html', format: 'plain', data: receiptHtml }
-            ];
+            // 2️⃣ **Petits reçus pour chaque article**
+            var miniReceipts = [];
+            document.querySelectorAll("#print-receipt tbody tr").forEach((row, index) => {
+                let itemName = row.children[0]?.innerText || "";
+                let itemPrice = row.children[1]?.innerText || "";
+                let itemQty = parseInt(row.children[2]?.innerText || "1");
 
-            return qz.print(config, data);
+                for (let i = 0; i < itemQty; i++) {
+                    let miniReceipt = `
+                        <div style="text-align: center; font-size: 14px; font-weight: bold;">
+                            <p>Commande #{{order.id}}</p>
+                            <p>${itemName}</p>
+                            <p>Prix: ${itemPrice} F CFA</p>
+                        </div>
+                    `;
+                    miniReceipts.push({ type: 'html', format: 'plain', data: miniReceipt });
+                }
+            });
+
+            // **Imprimer le ticket puis les petits reçus**
+            return qz.print(config, ticketData).then(() => {
+                return qz.print(config, miniReceipts);
+            });
+
         }).then(() => {
-            console.log("Ticket imprimé avec succès !");
+            console.log("Impression réussie !");
         }).catch(handleQZError);
     }
 
@@ -351,7 +369,6 @@
         }
     }
 </script>
-
 
  
 <script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>

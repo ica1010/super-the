@@ -316,25 +316,38 @@
 
 <script>
     function printReceipt() {
-        qz.websocket.connect().then(() => {
-            return qz.printers.getDefault(); // Récupère l'imprimante par défaut
-        }).then((printer) => {
+        // Vérifier si QZ Tray est déjà connecté
+        if (!qz.websocket.isActive()) {
+            console.log("Tentative de connexion à QZ Tray...");
+            qz.websocket.connect().then(startPrint).catch(handleQZError);
+        } else {
+            startPrint();
+        }
+    }
+
+    function startPrint() {
+        qz.printers.getDefault().then((printer) => {
+            console.log("Imprimante par défaut détectée :", printer);
             var config = qz.configs.create(printer);
-            
+
             // Récupérer le contenu du ticket
-            var receiptText = document.querySelector("#print-receipt").innerText; // Utiliser innerText pour un format simple
-            var data = receiptText.split("\n"); // Convertir en tableau pour l'impression ligne par ligne
-    
+            var receiptText = document.querySelector("#print-receipt").innerText;
+            var data = receiptText.split("\n"); // Séparer en lignes
+
             return qz.print(config, data);
         }).then(() => {
             console.log("Ticket imprimé avec succès !");
-        }).catch((err) => {
-            console.error("Erreur d'impression :", err);
-        });
+        }).catch(handleQZError);
     }
-    
-</script>    
-    
+
+    function handleQZError(err) {
+        console.error("Erreur QZ Tray :", err);
+        if (err.message.includes("Unable to establish connection")) {
+            alert("QZ Tray ne fonctionne pas. Vérifie s'il est bien lancé.");
+        }
+    }
+</script>
+
  
 <script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>
 <script src="{% static 'assets/js/jquery-3.7.1.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>

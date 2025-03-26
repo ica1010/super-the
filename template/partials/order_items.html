@@ -325,17 +325,21 @@
     }
 
     function startPrint() {
-        qz.printers.getDefault().then((printer) => {
-            console.log("Imprimante détectée :", printer);
-            var config = qz.configs.create(printer);
+        Promise.all([
+            qz.printers.find("caisse"),    // Remplace avec le nom réel de l'imprimante caisse
+            qz.printers.find("autocollant") // Remplace avec le nom réel de l'imprimante autocollant
+        ]).then(([printerCaisse, printerAutocollant]) => {
+            console.log("Imprimantes détectées :", printerCaisse, printerAutocollant);
 
-            // 1️⃣ **Ticket détaillé (Facture)**
+            // **Ticket de Caisse (Imprimante 1)**
+            var configCaisse = qz.configs.create(printerCaisse);
             var receiptHtml = document.querySelector("#print-receipt").outerHTML;
             var ticketData = [{ type: 'html', format: 'plain', data: receiptHtml }];
 
-            // 2️⃣ **Petits reçus pour chaque article**
+            // **Tickets autocollants (Imprimante 2)**
+            var configAutocollant = qz.configs.create(printerAutocollant);
             var miniReceipts = [];
-            document.querySelectorAll("#print-receipt tbody tr").forEach((row, index) => {
+            document.querySelectorAll("#print-receipt tbody tr").forEach((row) => {
                 let itemName = row.children[0]?.innerText || "";
                 let itemPrice = row.children[1]?.innerText || "";
                 let itemQty = parseInt(row.children[2]?.innerText || "1");
@@ -352,10 +356,9 @@
                 }
             });
 
-            // **Imprimer le ticket puis les petits reçus**
-            return qz.print(config, ticketData).then(() => {
-                return qz.print(config, miniReceipts);
-            });
+            // **Impression**
+            return qz.print(configCaisse, ticketData) // Ticket de caisse
+                .then(() => qz.print(configAutocollant, miniReceipts)); // Autocollants
 
         }).then(() => {
             console.log("Impression réussie !");
@@ -369,6 +372,7 @@
         }
     }
 </script>
+
 
  
 <script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>

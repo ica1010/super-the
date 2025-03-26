@@ -20,6 +20,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='category', default='img.jpeg')
     code = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    size = models.CharField(max_length=100,blank=True, null=True, default='Grand')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     price = MoneyField(
         max_digits=14, 

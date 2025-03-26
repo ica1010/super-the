@@ -297,8 +297,23 @@
                     </div>
                        
                 </div>
+                {% for item in order.items.all %}
+                  <div class="card" id="autocollant-{{item.id}}">
+                    <p> {{item.product.code}} </p>
+                    <div class="row">
+                        <div class="col text-center">
+                            <p> {{item.product.size}} </p>
+                        </div>
+                        <div class="col text-center">
+                            {{order.id}}
+                        </div>
+                       <center>
+                        {{forloop.counter}}-{{order.items.count}}
+                       </center>
+                    </div>
+                  </div>
+                {% endfor %}
                     <div class="d-flex justify-content-center mt-4">
-                      
                             <button onclick="printReceipt()" class="btn btn-success btn-icon flex-fill" aria-label="Commande suivante">
                                 <span class="me-1 d-flex align-items-center">
                                     <i data-feather="credit-card" class="feather-16"></i>
@@ -326,39 +341,38 @@
 
     function startPrint() {
         Promise.all([
-            qz.printers.find("caisse"),    // Remplace avec le nom réel de l'imprimante caisse
-            qz.printers.find("autocollant") // Remplace avec le nom réel de l'imprimante autocollant
+            qz.printers.find("CAISSE"),    // ⚠️ Remplace avec le nom réel
+            qz.printers.find("AUTOCOLLANT") // ⚠️ Remplace avec le nom réel
         ]).then(([printerCaisse, printerAutocollant]) => {
             console.log("Imprimantes détectées :", printerCaisse, printerAutocollant);
 
-            // **Ticket de Caisse (Imprimante 1)**
-            var configCaisse = qz.configs.create(printerCaisse);
-            var receiptHtml = document.querySelector("#print-receipt").outerHTML;
-            var ticketData = [{ type: 'html', format: 'plain', data: receiptHtml }];
+            // **📜 Configuration Ticket de Caisse**
+            var configCaisse = qz.configs.create(printerCaisse, { 
+                size: { width: 50, height: -1 },  // Largeur = 50mm, hauteur ajustable
+                units: "mm"
+            });
+            var ticketHtml = document.querySelector("#print-receipt").outerHTML;
+            var ticketData = [{ type: 'html', format: 'plain', data: ticketHtml }];
 
-            // **Tickets autocollants (Imprimante 2)**
-            var configAutocollant = qz.configs.create(printerAutocollant);
-            var miniReceipts = [];
-            document.querySelectorAll("#print-receipt tbody tr").forEach((row) => {
-                let itemName = row.children[0]?.innerText || "";
-                let itemPrice = row.children[1]?.innerText || "";
-                let itemQty = parseInt(row.children[2]?.innerText || "1");
+            // **🏷️ Configuration Autocollants**
+            var configAutocollant = qz.configs.create(printerAutocollant, { 
+                size: { width: 41, height: 30 }, // Largeur = 41mm, Hauteur = 30mm
+                units: "mm"
+            });
+            var autocollants = [];
+            
+            document.querySelectorAll("[id^='autocollant-']").forEach((div) => {
+                let itemText = div.outerHTML;
+                let quantity = parseInt(div.dataset.quantity || "1");
 
-                for (let i = 0; i < itemQty; i++) {
-                    let miniReceipt = `
-                        <div style="text-align: center; font-size: 14px; font-weight: bold;">
-                            <p>Commande #{{order.id}}</p>
-                            <p>${itemName}</p>
-                            <p>Prix: ${itemPrice} F CFA</p>
-                        </div>
-                    `;
-                    miniReceipts.push({ type: 'html', format: 'plain', data: miniReceipt });
+                for (let i = 0; i < quantity; i++) {
+                    autocollants.push({ type: 'html', format: 'plain', data: itemText });
                 }
             });
 
-            // **Impression**
+            // **🖨️ Impression**
             return qz.print(configCaisse, ticketData) // Ticket de caisse
-                .then(() => qz.print(configAutocollant, miniReceipts)); // Autocollants
+                .then(() => qz.print(configAutocollant, autocollants)); // Autocollants
 
         }).then(() => {
             console.log("Impression réussie !");

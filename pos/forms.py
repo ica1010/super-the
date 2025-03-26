@@ -8,7 +8,7 @@ from .models import Product
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'image', 'code', 'category', 'price']
+        fields = ['name', 'size','image', 'code', 'category', 'price']
 
     price = MoneyField(
         decimal_places=0,
@@ -20,6 +20,7 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Ajout de classes Bootstrap pour le style
         self.fields['name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Nom du produit'})
+        self.fields['size'].widget.attrs.update({'class': 'form-control', 'placeholder': 'taille'})
         self.fields['image'].widget.attrs.update({'class': 'form-control'})
         self.fields['code'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Code produit'})
         self.fields['category'].widget.attrs.update({'class': 'form-control'})

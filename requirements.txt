@@ -70,3 +70,4 @@ webencodings==0.5.1
 whitenoise==6.7.0
 zope.interface==7.0.3
 zopfli==0.2.3
+django-money

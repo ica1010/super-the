@@ -298,7 +298,7 @@
                        
                 </div>
                 {% for item in order.items.all %}
-                  <div class="card" id="autocollant-{{item.id}}">
+                  <div class="card" style="display: flex;justify-content:center; width : 41 px" id="autocollant-{{item.id}}">
                     <p> {{item.product.code}} </p>
                     <div class="row">
                         <div class="col text-center">
@@ -348,7 +348,7 @@
 
             // **📜 Configuration Ticket de Caisse**
             var configCaisse = qz.configs.create(printerCaisse, { 
-                size: { width: 50, height: -1 },  // Largeur = 50mm, hauteur ajustable
+                size: { width: 58, height: -1 },  // Largeur = 50mm, hauteur ajustable
                 units: "mm"
             });
             var ticketHtml = document.querySelector("#print-receipt").outerHTML;

@@ -1,0 +1,371 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/css/dataTables.bootstrap5.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/all.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.theme.default.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+<aside class="product-order-list" id="order-items">
+
+    <div class="head d-flex align-items-center justify-content-between w-100">
+        <div class>
+            <h5>Order List</h5>
+
+            {% if order %}
+            <span>ID : #order-{{ order.id }} {{ order.status }}</span>
+            {% endif %}
+        </div>
+        <!-- Button to Refresh Order Items -->
+        <div>
+            <button hx-get="{% url 'refresh_order'  %}" hx-target="#order-items" hx-swap="innerHTML" class="btn btn-primary">
+                Actualiser
+            </button>
+        </div>
+    </div>
+    {% if order %}
+    <div class="customer-info block-section">
+        <h6>Information du client</h6>
+    </div>
+
+    <div class="product-added block-section">
+        <div class="head-text d-flex align-items-center justify-content-between px-2">
+            {% if order.id %}
+            <h6 class="d-flex align-items-center mb-0">Product Added<span class="count"> {{ order.items.all.count }}</span>
+            </h6>
+            
+            <form hx-post="{% url 'clear-order' order.id %}" hx-target="#order-items" hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" style="display: none;" id="clear-{{ item.id }}"></button>
+                <a href="javascript:void(0);" class="d-flex align-items-center text-danger"
+                   onclick="document.getElementById('clear-{{ item.id }}').click();"><span class="me-1"><i
+                           class="feather-16 fe fe-x"></i></span>Clear all</a>
+            </form>
+            {% endif %}
+        </div>
+        <div class="product-wrap">
+            <div class="product-wrap">
+                <input type="hidden" value="{{ order.id }}" id="order-id">
+
+                {% for item in order.items.all %}
+                <div class="product-list d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center product-info" data-bs-toggle="modal"
+                         data-bs-target="#recents-{{ item.id }}">
+                        <a data-bs-toggle="modal" data-bs-target="#recents-{{ item.id }}" class="img-bg">
+                            <img src="{{ item.product.image.url }}" alt="Products">
+                        </a>
+                        <div class="info">
+                            <span>{{ item.product.code }}</span>
+                            <h6><a href="javascript:void(0);">{{ item.product.category }} - {{ item.custom_product_name }}</a></h6>
+                            <p>{{ item.custom_product_price }} Franc Cfa</p>
+                        </div>
+                    </div>
+                    <div class="qty-item text-center">
+                        <!-- Decrement Quantity -->
+                        <form hx-post="{% url 'decrement_order_item' item.id %}" hx-target="#order-items"
+                              hx-swap="outerHTML">
+                            {% csrf_token %}
+                            <button type="submit" style="display: none;" id="rem-qty-{{ item.id }}"></button>
+                            <a href="javascript:void(0);" class="dec d-flex justify-content-center align-items-center"
+                               onclick="document.getElementById('rem-qty-{{ item.id }}').click();">
+                                <i  data-feather="minus-circle" class="feather-14"></i>
+                            </a>
+                        </form>
+
+                        <input type="text" class="form-control text-center" name="qty" value="{{ item.quantity }}"
+                               readonly>
+
+                        <!-- Increment Quantity -->
+                        <form hx-post="{% url 'increment_order_item' item.id %}" hx-target="#order-items"
+                              hx-swap="outerHTML">
+                            {% csrf_token %}
+                            <button type="submit" style="display: none;" id="add-qty-{{ item.id }}"></button>
+                            <a href="javascript:void(0);" class="inc d-flex justify-content-center align-items-center"
+                               onclick="document.getElementById('add-qty-{{ item.id }}').click();">
+                                <i  data-feather="minus-plus" class="feather-14" ></i>
+                            </a>
+                        </form>
+                    </div>
+
+                    <!-- Delete Item -->
+                    <form hx-post="{% url 'delete_order_item' item.id %}" hx-target="#order-items" hx-swap="outerHTML"
+                          class="d-flex align-items-center action">
+                        {% csrf_token %}
+                        <button type="submit" style="display: none;" id="del-form-{{ item.id }}"></button>
+                        <a class="btn-icon btn delete-icon confirm-text"
+                           onclick="document.getElementById('del-form-{{ item.id }}').click();">
+                            <i data-feather="trash-2" class="feather-14"></i>
+                        </a>
+                    </form>
+                </div>
+
+
+                <div class="modal fade pos-modal" id="recents-{{ item.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header p-1 px-3">
+                                <h5 class="modal-title">Item Modification</h5>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="d-flex align-items-center product-info row">
+                                    <a class="img-bg col-md-3">
+                                        <img src="{{ item.product.image.url }}" alt="Products">
+                                    </a>
+                                    <form method="POST" hx-post="{% url 'update_item' item.id %}"
+                                          hx-target="#order-items" hx-swap="outerHTML" class="info col-md-9">
+                                        {% csrf_token %}
+                                        <span>#order-{{ order.id }}</span>
+                                        <input type="text" value="{{ item.custom_product_name }}" name="product_name"
+                                               class="form-control">
+                                        <p class="row">
+                                        <div class="col-8">
+                                            <input type="number" value="{{ item.custom_product_price }}"
+                                                   name="product_price" class="form-control">
+                                        </div>
+                                        <div class="col-4">Franc Cfa</div>
+                                        </p>
+                                        <button type="submit" class="btn btn-success w-100" class="close"
+                                                data-bs-dismiss="modal" aria-label="Close"> Enregistrer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="block-section">
+        <div class="d-grid btn-block">
+        <a class="btn btn-secondary" href="javascript:void(0);">
+            Grand Total : {{ order.get_total }} Franc cfa
+        </a>
+    </div>
+
+        <div class="order-total">
+            <table class="table table-responsive table-borderless">
+                <tr>
+                    <td>Remise</td>
+                    <td class="text-end">{{order.discount}} Franc Cfa</td>
+                </tr>
+                <tr>
+                    <td>Grand Total</td>
+                    <td class="text-end">{{order.get_total}} Franc Cfa</td>
+                </tr>
+                <tr>
+                    <td>Somme Payé</td>
+                    <td class="text-end">{{order.montant_paye}} Franc Cfa</td>
+                </tr>
+                <tr>
+                    <td>Somme Restante</td>
+                    <td class="text-end"> {{order.montant_restant}} Franc Cfa</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="btn-row d-sm-flex align-items-center justify-content-between col-12">
+        <a href="javascript:void(0);" class="btn btn-success btn-icon flex-fill" data-bs-toggle="modal"
+            data-bs-target="#print-receipt"><span class="me-1 d-flex align-items-center"><i data-feather="credit-card"
+                    class="feather-16"></i></span>Imprimer le recu</a>
+    </div>
+    <div class="block-section payment-method">
+        <div class="row d-flex align-items-center justify-content-center methods">
+            <div class="col-md-6 col-lg-4 item">
+                <form class="default-cover bg-danger" method="POST" hx-post="{% url 'cancel-current-order' order.id %}"
+                hx-target="#order-items" hx-swap="outerHTML">
+                    <button type="submit" id="ann-ticket" style="display: none;" >c</button>
+                    <a onclick="document.getElementById('ann-ticket').click()" >
+                        <span class=" text-white">Annulé le ticket</span>
+                    </a>
+                </form>
+            </div>
+            <div class="col-md-6 col-lg-4 item">
+                <form hx-post="{% url 'paused-order' order.id %}" hx-target="#paused-orders-list" hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" id="paus" style="display: none;"></button>
+                </form>
+                <div class="default-cover" onclick="document.getElementById('paus').click();">
+                    <a href="javascript:void(0);">
+                        <i data-feather="pause" class="feather-16"></i>
+                        <span>Mettre en pause</span>
+                    </a>
+                </div>
+            </div>
+          
+            <div class="col-md-6 col-lg-4 item">
+                <form hx-post="{% url 'save-order' order.id %}" hx-target="#order-items" hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" id="nextcomm" style="display: none;"></button>
+                </form>
+                <button class="default-cover bg-success w-100"  onclick="document.getElementById('nextcomm').click();" >
+                    <a href="javascript:void(0);">
+                        <span style="color: white;">Suivant</span>
+                    </a>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade modal-default print-receipt-{{order.id}}" id="print-receipt" aria-labelledby="print-receipt">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="close p-0" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-3">
+                            <center>
+                                <div class="icon-head text-center">
+                                    <a href="javascript:void(0);">
+                                        <img src="{% static 'assets/img/logo.png' %}" width="100" height="30"
+                                            alt="Receipt Logo">
+                                    </a>
+                                </div>
+                            </center>
+                        </div>
+                        <div class="col-9">
+                            <div class="text-start info text-start">
+                                <h6>Dreamguys Technologies Pvt Ltd.,</h6>
+                                <p class="mb-0">Phone Number: +1 5656665656</p>
+                                <address>address : Lorem ipsum dolor sit amet, consectetur adipisicing elit.</address>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tax-invoice">
+                        <h6 class="text-center">Order Invoice</h6>
+                    </div>
+                    <table class="table-borderless w-100 table-fit">
+                        <thead>
+                            <tr>
+                                <th># Item</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td>{{forloop.counter}}. {{item.custom_product_name}}</td>
+                                <td>{{item.custom_product_price}}</td>
+                                <td>{{item.quantity}}</td>
+                                <td class="text-end"> {{ item.get_total}} Franc Cfa</td>
+                            </tr>
+                            {% endfor %}
+
+                            <tr>
+                                <td colspan="4">
+                                    <table class="table-borderless w-100 table-fit">
+                                        <tr>
+                                            <td>Payé :</td>
+                                            <td class="text-end">{{order.montant_paye}} Franc Cfa</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Reste a payé :</td>
+                                            <td class="text-end">{{order.montant_restant}} Franc Cfa</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Payable :</td>
+                                            <td class="text-end">{{order.get_total}} Franc Cfa</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-center mt-4">
+                      
+                            <button onclick="printReceipt()" class="btn btn-success btn-icon flex-fill" aria-label="Commande suivante">
+                                <span class="me-1 d-flex align-items-center">
+                                    <i data-feather="credit-card" class="feather-16"></i>
+                                </span>
+                               Imprimer
+                            </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</aside>
+
+
+<script>
+    function printReceipt() {
+        // Vérifie si QZ Tray est bien connecté
+        qz.websocket.connect().then(() => {
+            return qz.printers.find("Nom_de_ton_imprimante"); // Remplace par le nom de ton imprimante
+        }).then((printer) => {
+            var config = qz.configs.create(printer);
+            
+            // Récupère le contenu du ticket
+            var receiptText = document.querySelector("#print-receipt").innerText; // Utiliser innerText pour garder la mise en forme simple
+            var data = receiptText.split("\n"); // Convertir en tableau pour l'impression ligne par ligne
+    
+            return qz.print(config, data);
+        }).then(() => {
+            console.log("Ticket imprimé avec succès !");
+        }).catch((err) => {
+            console.error("Erreur d'impression :", err);
+        });
+    }
+    
+    </script>
+    
+ 
+<script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery-3.7.1.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/js/feather.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/js/jquery.slimscroll.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/js/jquery.dataTables.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/js/dataTables.bootstrap5.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/js/bootstrap.bundle.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/plugins/apexchart/apexcharts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/plugins/apexchart/chart-data.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/js/moment.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"
+    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"
+    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/plugins/select2/js/select2.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+<script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"
+    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/js/theme-script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'assets/js/script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+<script src="{% static 'cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js' %}"
+    data-cf-settings="bd2c7c24cd6044b322c2190f-|49" defer></script>
+

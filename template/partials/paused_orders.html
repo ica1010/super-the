@@ -1,0 +1,57 @@
+{% for orders in paused_orders %}
+<table class="table datanew" id="order-table">
+  <thead>
+      <tr>
+          <th class="no-sort">Commande</th>
+          <th class="no-sort">Produit</th>
+          <th class="no-sort">Amount </th>
+          <th class="no-sort">Action</th>
+      </tr>
+  </thead>
+  <tbody>
+<tr>
+  <td>{{orders}} </td>
+  <td>
+    <ul>
+      {% for item in orders.items.all %}
+      <li>{{item}}</li>
+      {% endfor %}
+
+    </ul>
+  </td>
+  <td>{{orders.get_total}}</td>
+  <td class="action-table-data">
+    <form hx-post="{% url 'unpaused-order' orders.id %}" hx-target="#paused-orders-list" hx-swap="innerHTML">
+      {% csrf_token %}
+      <button id="play-{{orders.id}}" type="submit" style="display: none;">submit</button>
+      <a class="btn btn-success btn-icon flex-fill" aria-label="Commande suivante"
+        onclick="document.getElementById('play-{{orders.id}}').click();" style="width: max-content;margin-right:10px ">
+        Recuperer la commande
+
+      </a>
+
+    </form>
+
+
+    <form hx-delete="{% url 'delete-order' orders.id %}" hx-target="#paused-orders-list" hx-swap="innerHTML">
+      {% csrf_token %}
+      <button id="del-{{orders.id}}" type="submit" style="display: none;">submit</button>
+      <a class="btn btn-danger btn-icon flex-fill" aria-label="Supprimer la commande"
+        onclick="document.getElementById('del-{{orders.id}}').click();">
+        <span class="me-1 d-flex align-items-center">
+          <i data-feather="trash" class="feather-16"></i>
+        </span>
+      </a>
+    </form>
+
+  </td>
+</tr>
+</tbody>
+</table>
+{% endfor %}
+<script>
+  document.body.addEventListener('htmx:configRequest', (event) => {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    event.detail.headers['X-CSRFToken'] = csrfToken;
+  });
+</script>

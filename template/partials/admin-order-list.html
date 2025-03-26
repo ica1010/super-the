@@ -1,0 +1,49 @@
+{% load static %}
+{% for order in orders %}
+<tr data-date="{{ order.add_at|date:'Y-m-d' }}">
+    <td>#{{order.id}} </td>
+    <td>{{order.server}}</td>
+    <td>{{order.add_at|date:'d M Y , h:i'}}</td>
+    <td>{{order.get_total}} Franc Cfa</td>
+    <!-- <td><span class="badge {% if order.status == 'En cours' %}
+        bg-outline-warning
+        {% else %}
+        badge-linesuccess
+        {% endif %}">{{order.status}}</span></td>
+    <td><span class="badge  {% if order.status_de_paiement == 'non soldée' %}
+        badge-linedanger
+        {% else %}
+        badge-linesuccess
+        {% endif %}">{{order.status_de_paiement}}</span></td>
+    <td> -->
+            <a class="p-2" data-bs-toggle="modal" data-bs-target=".print-receipt-{{order.id}}">
+                Voir le recu
+            </a>
+    </td>
+    <td class="action-table-data">
+        <div class="edit-delete-action">
+            {% if order.status != 'Retournée' %}
+            <a class="me-2 p-2" href="{% url 'modify-order' order.id %}">
+                <i data-feather="edit" class="feather-edit"></i>
+            </a>
+           
+            {% endif %}
+            <a class="me-2 edit-icon  p-2" href="{% url 'order-detail' order.id %}">
+                <i data-feather="eye" class="feather-eye"></i>
+            </a>
+
+            <form 
+            action="{% url 'admin-delete-order' order.id %}" 
+          method="get"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit" id="btn-{{orders.id}}" class="d-none"></button>
+                <a onclick="document.getElementById('btn-{{orders.id}}').click();" href="javascript:void(0);" class="confirm-text p-2" type="submit">
+                    <i data-feather="trash-2" class="feather-trash-2"></i>
+                </a>
+            </form>
+
+        </div>
+    </td>
+</tr>
+{% endfor %}

@@ -1,0 +1,95 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block base %}
+
+{% include 'include/navbar.html' %}
+<div class="page-wrapper pos-pg-wrapper ms-0">
+    <div class="content pos-design p-0">
+        <div class="row align-items-start pos-wrapper">
+            <div class="col-md-12 col-lg-8">
+                <div class="pos-categories tabs_wrapper">
+                    <!-- <h5>Categories</h5> -->
+                    <div class="pos-products">
+                        <div class="row mt-5">
+                            {% for product in products %}
+                            <div class="col-sm-3 col-md-6 col-lg-3 col-xl-3">
+                                <form hx-post="{% url 'add_product_to_reapo' %}" hx-target="#achat-items" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <input type="hidden" name="qty"  value=1 >
+                                    <button style="display: none;" id="stock_product_btn-{{ product.id }}" ></button>
+                                <div class="product-info default-cover card" onclick="document.getElementById('stock_product_btn-{{ product.id }}').click()">
+                                    <a href="javascript:void(0);" class="img-bg">
+                                        <img src="{{product.category.image.url}}" alt="Products"
+                                            style="transform: scale(1);    height: 100%;">
+                                    </a>
+                                    <h6 class="cat-name mt-3"><a href="javascript:void(0);">{{product.category.name}} - {{product.name}} <br>Quantitté : {{product.stock_actuel}} en stock</a></h6>
+                                </div>
+                            </form>
+                                
+                            </div>
+                    
+                        {% empty %}
+                            <p>No categories found.</p>
+                        {% endfor %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 col-lg-4 ps-0">
+              
+               {% include 'partials/achat_items.html' %}
+        
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="add-client">
+    <div class="modal-dialog edit- sales-modal">
+        <div class="modal-content">
+            <div class="page-wrapper p-0 m-0">
+                <div class="content p-0">
+                    <div class="page-header p-4 mb-0">
+                        <div class="add-item new-sale-items d-flex">
+                            <div class="page-title">
+                                <h4>nouveau Fournisseur</h4>
+                            </div>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form hx-post="{% url 'add-fournisseur-on-reapovisionement' %}"  method="post"  hx-target="#achat-items"
+                            hx-swap="outerHTML" >
+                                {% csrf_token %}
+                                <div class="row">
+                                        <div class="input-blocks">
+                                           <div class="mb-3">
+                                            <input type="text" name="nom" placeholder="Nom" required>
+                                           </div>
+                                            <div class="mb-3">
+                                                <input type="text" name="telephone" placeholder="Téléphone">
+                                            </div>
+                                           <div class="mb-3"></div>
+                                           <textarea name="adresse" placeholder="Adresse" required></textarea>
+                                        </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" class="close" data-bs-dismiss="modal" aria-label="Close">Enregistrer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>
+
+
+{% endblock base %}

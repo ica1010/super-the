@@ -1,0 +1,883 @@
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
+from crm.models import Fournisseur
+from pos.models import Caisse
+from pos.forms import CategoryForm, ProductForm
+from pos.models  import Category, Product
+from .models import Order
+from django.utils import timezone
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django import forms
+from decimal import Decimal, InvalidOperation
+from django.db.models import Count, Q,Sum, Max
+from .models import Order, OrderItem
+from pos.models import Caisse, Product
+from crm.models import Client, Fournisseur
+from django.contrib import messages
+
+# Create your views here.
+def OrdersList(request):
+    orders = Order.objects.prefetch_related('items__product').filter(delete = False)
+    
+    context ={
+        'orders':orders
+    }
+    
+    return render(request, 'pages/orders-list.html',context)
+
+def DeletedOrdersList(request):
+    orders = Order.objects.prefetch_related('items__product').filter(delete =True)
+    
+    context ={
+        'orders':orders
+    }
+    
+    return render(request, 'pages/deleted-orders-list.html',context)
+
+def ReturnedOrdersList(request):
+    orders = Order.objects.prefetch_related('items__product').filter(status = 'Retournée')
+    
+    context ={
+        'orders':orders
+    }
+    
+    return render(request, 'pages/return-orders-list.html',context)
+
+def OrderDetail(request, id):
+    order = Order.objects.prefetch_related('items__product').get(id=id)
+    
+    context ={
+        'order':order
+    }
+
+    return render(request, 'pages/order-detail.html',context)
+
+def CancelOrder(request, id):
+    order = Order.objects.get(id=id)
+    order.status = 'Retournée'
+    order.save()
+
+    return redirect('return-orders-list')
+
+def update_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == 'POST':
+        for item in order.items.all():
+            # Récupérer la quantité et le prix personnalisé depuis le formulaire
+            new_quantity = request.POST.get(f'quantity_{item.id}')
+            new_custom_price = request.POST.get(f'custom_price_{item.id}')
+            new_custom_name = request.POST.get(f'custom_name_{item.id}')
+
+            # Mettre à jour la quantité si elle est fournie
+            if new_quantity:
+                item.quantity = int(new_quantity)
+            
+            if new_custom_name:
+                item.custom_product_name = new_custom_name
+            
+            # Mettre à jour le prix personnalisé si fourni
+            if new_custom_price:
+                item.custom_product_price = float(new_custom_price)
+
+            item.save()
+
+        # Renvoyer le modal mis à jour
+        html = render_to_string('partials/admin-order-update.html', {'order': order})
+        return JsonResponse({'html': html})
+    
+def delete_order(request, order_id):
+    current_order = get_object_or_404(Order, id=order_id)
+
+    if request.method == "GET":
+        # Bascule l'état de suppression de la commande
+        current_order.delete = not current_order.delete
+        current_order.save()
+        
+        # Redirige en fonction de l'état de suppression
+        if request.path == '/pos/list-des-ventes':
+            return redirect('orders-list')  # Redirige vers la liste des commandes supprimées
+        else:
+            return redirect('deleted-orders-list')
+        
+
+
+def ProductList(request):
+    products = Product.objects.all()
+    category = Category.objects.all()
+    form = ProductForm()
+    context = {
+        'products':products,
+        'category':category,
+        'form':form,
+    }
+    return render(request, 'pages/product-list.html',context)
+
+
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect ("products-list")
+        else:
+            return redirect('products-list')
+    return JsonResponse({"error": "Invalid method"})
+
+def update_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    if request.method == 'POST':
+        nom = request.POST.get('nom')
+        categorie_id = request.POST.get('cat')
+        prix = request.POST.get('prix')
+        
+        category = get_object_or_404(Category, id=categorie_id)
+        product.name = nom
+        product.category = category
+        product.price = prix
+        product.save()
+        products = Product.objects.all()
+        return render(request, "partials/product-list.html", {"products": products})
+   
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+@csrf_exempt
+def delete_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    products = Product.objects.all()
+    if request.method == "DELETE":  # Accepter DELETE ici
+        product.delete()
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/product-list.html", {"products": products})
+        return redirect("products-list")
+    return HttpResponse(status=405)
+
+
+
+def CategoryList(request):
+    categories = Category.objects.all()
+    form = CategoryForm()
+    context = {
+        'categories':categories,
+        'form':form,
+    }
+    return render(request, 'pages/category-list.html',context)
+
+
+def add_Category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            categories = Category.objects.all()
+            return render(request, "partials/category-list.html", {"categories": categories})
+        else:
+            # Retourner des erreurs de formulaire si nécessaire
+            return render(request, "partials/category-list.html", {"form": form}, status=400)
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+def update_Category(request, id):
+    category = get_object_or_404(Category, id=id)
+    if request.method == 'POST':
+        nom = request.POST.get('nom')
+        image = request.FILES.get('image')
+        
+        category.name = nom
+        category.image = image
+        category.save()
+        categories = Category.objects.all()
+        return render(request, "partials/category-list.html", {"categories": categories})
+   
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+@csrf_exempt
+def delete_Category(request, id):
+    category = get_object_or_404(Category, id=id)
+    categories = Product.objects.all()
+    if request.method == "DELETE":  # Accepter DELETE ici
+        category.delete()
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/category-list.html", {"categories": categories})
+        return redirect("category-list")
+    return HttpResponse(status=405)
+
+# def reaprovisionnement(request,id):
+#     produit = get_object_or_404(Product, id=id)
+    
+#     if request.method == 'POST':
+#         form = ReapprovisionnementForm(request.POST)
+        
+#         if form.is_valid():
+#             reapprovisionnement = form.save(commit=False)
+#             reapprovisionnement.produit = produit  # Assignation du produit
+#             reapprovisionnement.save()
+
+#             # Réajuster le prix du produit
+#             if produit.stock_initial_initial > 0:
+#                 produit.prix_de_vente = (produit.prix_de_vente * produit.stock_initial_initial + reapprovisionnement.prix_de_vente * reapprovisionnement.quantite) / (produit.stock_initial + reapprovisionnement.quantite)
+#             else:
+#                 produit.prix_de_vente = reapprovisionnement.prix_de_vente # Si c'est le premier réapprovisionnement
+
+#             produit.quantite_stock_initial += int(reapprovisionnement.quantite)  # Augmenter la quantité de stock_initial
+#             produit.save()
+
+#             return redirect('reaprovisionnement', id=produit.id) 
+#     else:
+#         form = ReapprovisionnementForm()
+#     return render(request, 'pages/reaprovisionnement.html')
+
+
+
+def reaprovisionnementList(request):
+    fournisseurs = Fournisseur.objects.all()  # Récupérer tous les fournisseurs
+    produits = Product.objects.all()  # Récupérer tous les produits
+    reaprovisionnements = Reapprovisionnement.objects.all()
+    form = ReapprovisionnementForm()
+    context = {
+        'reaprovisionnements':reaprovisionnements,
+        'form':form,
+        'fournisseurs': fournisseurs,
+        'produits': produits,
+    }
+    
+    return render(request, 'pages/reaprovisionnement-list.html',context)
+
+
+@csrf_exempt
+def create_reapprovisionnement(request):
+    try:
+        fournisseurs = Fournisseur.objects.all()
+        produits = Product.objects.all()
+
+        if request.method == 'POST':
+            # print(request.POST.get('decaissement', 'oui'))
+            fournisseur_id = request.POST.get('fournisseur')
+            decaissement = request.POST.get('decaissement', 'oui') == 'oui'
+            caisse = Caisse.objects.get(user = request.user)
+
+            reapprovisionnement = Reapprovisionnement.objects.create(
+                fournisseur_id=fournisseur_id,
+            )
+
+            item_ids = request.POST.getlist('item_id[]')
+            item_quantities = request.POST.getlist('item_quantity[]')
+            item_prices = request.POST.getlist('item_price[]')
+            total_montant = 0
+
+            for item_id, quantity, price in zip(item_ids, item_quantities, item_prices):
+                print('hellllloooooooooooooooooooo')
+                product = Product.objects.get(id=item_id)
+                quantite = int(quantity)
+                prix_unite = float(price)
+                total_montant += quantite * prix_unite
+
+                # Créer l'item de réapprovisionnement
+                newreapitems = ReapprovisionnementItem.objects.create(
+                    reapprovisionnement=reapprovisionnement,
+                    produit=product,
+                    quantite=quantite,
+                    prix=prix_unite
+                )
+
+                # Mettre à jour le stock_initial et le prix moyen du produit
+                product.ajouter_stock(quantite=quantite)
+                product.maj_prix_moyen(quantite, prix_unite)
+
+            # Gestion du décaissement
+            if decaissement:
+                try:
+                    caisse.ajouter_sortie(total_montant)
+                    print('hellllloooooooooooooooooooo ca marche')
+                    
+                except ValueError as e:
+                    reapprovisionnement.delete()
+                    for item in newreapitems:
+                        item.delete()
+                    print('hellllloooooooooooooooooooo',e)
+                    messages.error(request, "Solde de caisse insuffisant pour effectuer ce décaissement.")
+                    
+                    return redirect('reaprovisionnementList')
+
+            messages.success(request, "Réapprovisionnement créé avec succès.")
+            return redirect('reaprovisionnementList')
+
+        else:
+            reaprovisionnements = Reapprovisionnement.objects.all()
+            return render(request, 'pages/reaprovisionnement-list.html', {
+                'reaprovisionnements': reaprovisionnements,
+                'fournisseurs': fournisseurs,
+                'produits': produits,
+            })
+
+    except Exception as e:
+        print(f"Erreur : {e}")
+        messages.error(request, "Une erreur est survenue. Merci de réessayer.")
+        return redirect('reaprovisionnementList')
+    
+    
+def add_item_form(request):
+    """
+    Vue pour retourner le formulaire d'un nouvel item de réapprovisionnement.
+    """
+    form = ReapprovisionnementItemForm()
+    return render(request, 'partials/reapprovisionnement_item_form.html', {'form': form})
+
+
+
+def refresh_order(request):
+    """Recharge les éléments de la commande pour le serveur actuel."""
+    clients = Client.objects.filter(disponible=True)
+    order, _ = Order.objects.get_or_create(server=request.user, status="En cours")
+    return render(request, "partials/order_items.html", {"order": order, "clients": clients})
+
+def refresh_reapovisionement(request):
+    """Recharge les éléments de la commande pour le serveur actuel."""
+    fournisseurs = Fournisseur.objects.filter(disponible=True)
+    reapprovisionnement= get_object_or_404(Reapprovisionnement, autheur=request.user, status = 'Non Validé')
+    return render(request, "partials/achat_items.html", {"reapprovisionnement": reapprovisionnement, "fournisseurs": fournisseurs})
+
+@csrf_exempt
+def creer_client(request):
+    """Crée un nouveau client disponible pour les commandes en cours."""
+    clients = Client.objects.filter(disponible=True)
+    order, _ = Order.objects.get_or_create(server=request.user, status="En cours")
+
+    if request.method == 'POST':
+        nom, telephone, adresse = request.POST.get('nom'), request.POST.get('telephone'), request.POST.get('adresse')
+
+        if not nom or not adresse:
+            return JsonResponse({"error": "Nom et adresse sont requis."}, status=400)
+
+        try:
+            Client.objects.create(nom=nom, telephone=telephone, adresse=adresse)
+            if request.headers.get("HX-Request"):
+                return render(request, "partials/order_items.html", {"order": order, "clients": clients})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Méthode non autorisée."}, status=405)
+
+
+
+
+def clear_order(request, order_id):
+    """Supprime tous les éléments d'une commande."""
+    current_order = get_object_or_404(Order, id=order_id)
+    clients = Client.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        OrderItem.objects.filter(order=current_order).delete()
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": current_order, 'clients': clients})
+        return redirect("vendor-dashboard")
+
+    return HttpResponse(status=405)
+
+
+def cancel_order(request, order_id):
+    """Supprime tous les éléments d'une commande."""
+    current_order = get_object_or_404(Order, id=order_id)
+    clients = Client.objects.filter(disponible=True)
+    order, _ = Order.objects.get_or_create(server=request.user, status="En cours")
+    if request.method == "POST":
+        # OrderItem.objects.filter(order=current_order).delete()
+        current_order.delete = True
+        current_order.status = 'Annulé' 
+        current_order.save()
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": order, 'clients': clients})
+        return redirect("vendor-dashboard")
+
+    return HttpResponse(status=405)
+
+def save_order(request, order_id):
+    """Enregistre et valide une commande."""
+    current_order = get_object_or_404(Order, id=order_id)
+    caisse, created = Caisse.objects.get_or_create(user = request.user)
+
+    if request.method == "POST":
+        try:
+            montant_paye = Decimal(request.POST.get("somme_payer", 0) or 0)
+            if montant_paye > 0:
+                current_order.register_partial_payment(montant_paye)
+                try:
+                    caisse.ajouter_entree(int(montant_paye))
+                except Exception as e : 
+                    print(e)
+                
+            current_order.status = "Validé"
+            current_order.save()
+            
+            if request.headers.get("HX-Request"):
+                return render(request, "partials/order_items.html", {"order": {}})
+            return redirect("vendor-dashboard")
+        except (ValueError, InvalidOperation) as e:
+            print(e)
+            return JsonResponse({"error": "Montant invalide."}, status=400)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return HttpResponse(status=405)
+
+
+def save_reaprovisionement(request, id):
+    """Enregistre et valide une commande."""
+    current_reaprovisionement = get_object_or_404(Reapprovisionnement, id=id)
+    caisse = Caisse.objects.get(user = request.user)
+
+    if request.method == "POST":
+        try:
+            decaissement = request.POST.get('decaissement', 'off') == 'off'
+            print(request.POST.get('decaissement'))
+            print(decaissement)
+            
+            if not decaissement :
+               try :
+                    caisse.ajouter_sortie(current_reaprovisionement.prix_total)
+                    current_reaprovisionement.status = "Validé"
+                    current_reaprovisionement.save()
+                    current_reaprovisionement.appliquer_reapprovisionnement()
+               except Exception as e:
+                   print(e)
+                #    Notification.objects.create(user = request.user, message = f'erreur : {e}')
+            else :
+                current_reaprovisionement.status = "Validé"
+                current_reaprovisionement.save()
+                current_reaprovisionement.appliquer_reapprovisionnement()
+            
+            if request.headers.get("HX-Request"):
+                return render(request, "partials/achat_items.html", {"reapprovisionnement":''})
+            return redirect("/")
+        except Exception as e:
+            print(e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return HttpResponse(status=405)
+
+
+def modify_order(request, order_id):
+    """Met en pause une commande."""
+    current_order = get_object_or_404(Order, id=order_id,server=request.user )
+
+    if request.method == "GET":
+        current_order.status = "En cours"
+        current_order.save()
+
+        if request.headers.get("HX-Request"):
+            return redirect("vendor-dashboard")
+
+        return redirect("vendor-dashboard")
+
+    return HttpResponse(status=405)
+
+
+def paused_order(request, order_id):
+    """Met en pause une commande."""
+    current_order = get_object_or_404(Order, id=order_id)
+
+    if request.method == "POST":
+        current_order.status = "Mis en pause"
+        current_order.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/paused_orders.html", {"paused_orders": Order.objects.filter(status="Mis en pause"), "order": current_order})
+
+        return redirect("vendor-dashboard")
+
+    return HttpResponse(status=405)
+
+def unpause_order(request, order_id):
+    """Réactive une commande en pause."""
+    current_order = get_object_or_404(Order, id=order_id)
+
+    if request.method == "POST":
+        current_order.status = "En cours"
+        current_order.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/paused_orders.html", {"paused_orders": Order.objects.filter(status="Mis en pause"), "order": current_order})
+
+        return refresh_order(request)
+
+    return HttpResponse(status=405)
+
+def add_product_to_order(request):
+    """Ajoute un produit à la commande en cours du serveur."""
+    order, _ = Order.objects.get_or_create(server=request.user, status="En cours")
+    clients = Client.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=request.POST.get("product_id"))
+        order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
+
+        order_item.quantity = order_item.quantity + 1 if not created else 1
+        order_item.save()
+
+        order.montant_restant = order.get_total()
+        
+        order.save()
+
+        
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": order, "clients": clients})
+        return redirect("vendor-dashboard", order_id=order.id)
+
+    return HttpResponse(status=405)
+
+def update_order_item(request, item_id):
+    """Met à jour le nom et le prix personnalisé d'un élément de commande."""
+    order_item = get_object_or_404(OrderItem, id=item_id)
+
+    if request.method == "POST":
+        new_name, new_price = request.POST.get("product_name"), request.POST.get("product_price")
+        if new_name:
+            order_item.custom_product_name = new_name
+        if new_price:
+            try:
+                order_item.custom_product_price = Decimal(new_price)
+            except InvalidOperation:
+                return JsonResponse({"error": "Prix invalide."}, status=400)
+
+        order_item.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": order_item.order, 'clients': Client.objects.filter(disponible=True)})
+        
+        return redirect("order_list")
+
+    return HttpResponse(status=405)
+
+
+def update_oreaprovisionement_item(request, item_id):
+    """Met à jour le nom et le prix personnalisé d'un élément de commande."""
+    reaprovisionement_item = get_object_or_404(ReapprovisionnementItem, id=item_id)
+
+    if request.method == "POST":
+        prix_achat, prix_de_vente = request.POST.get("prix_achat"), request.POST.get("prix_de_vente")
+        if prix_achat:
+            reaprovisionement_item.prix_achat = prix_achat
+        if prix_de_vente:
+            try:
+                reaprovisionement_item.prix_de_vente = Decimal(prix_de_vente)
+            except InvalidOperation:
+                return JsonResponse({"error": "Prix invalide."}, status=400)
+
+        reaprovisionement_item.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reaprovisionement_item.reapprovisionnement, 'fournisseurs': Fournisseur.objects.filter(disponible=True)})
+        
+        return redirect("/")
+
+    return HttpResponse(status=405)
+
+
+def choose_customer(request, id):
+    """Assigne un client à une commande et met à jour les dettes uniquement en cas de changement de client."""
+    current_order = get_object_or_404(Order, id=id)
+
+    if request.method == "POST":
+        client_id = request.POST.get("client_id")
+        new_client = Client.objects.get(id=client_id)
+
+        # Vérifie si le client a changé avant de mettre à jour les dettes
+        if current_order.client != new_client:
+            # Réduit la dette de l'ancien client si un client était déjà assigné
+            if current_order.client:
+                old_client = current_order.client
+                old_client.dette -= current_order.montant_restant
+                old_client.save(update_fields=["dette"])
+
+            # Assigne le nouveau client à la commande
+            current_order.client = new_client
+            current_order.status = "En cours"
+            current_order.save(update_fields=["client", "status"])
+
+            # Incrémente la dette du nouveau client
+            new_client.dette += current_order.montant_restant
+            new_client.save(update_fields=["dette"])
+
+        # Réponse partielle si c'est une requête HTMX, sinon redirection
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": current_order, "clients": Client.objects.filter(disponible=True)})
+        
+        return redirect("order_list")
+
+    return HttpResponse(status=405)
+
+def choose_fournissuer(request, id):
+    reapprovisionnement = get_object_or_404(Reapprovisionnement, id=id)
+
+    if request.method == "POST":
+        founrniseur_id = request.POST.get("fourniseur_id")
+        print(request.POST.get("fourniseur_id"))
+        reapprovisionnement.fournisseur = Fournisseur.objects.get(id=founrniseur_id)
+        reapprovisionnement.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reapprovisionnement, "fournisseurs": Fournisseur.objects.filter(disponible=True)})
+        return redirect("/")
+
+    return HttpResponse(status=405)
+
+def update_payment(request, order_id):
+    """Met à jour le paiement d'une commande."""
+    current_order = get_object_or_404(Order, id=order_id)
+    clients = Client.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        try:
+            montant_paye = Decimal(request.POST.get("somme_payer", 0) or 0)
+            if montant_paye > 0:
+                current_order.register_partial_payment(montant_paye)
+                current_order.save()
+
+            if request.headers.get("HX-Request"):
+                return render(request, "partials/order_items.html", {"order": current_order, "clients": clients})
+            return redirect("vendor-dashboard")
+        except (ValueError, InvalidOperation)   as e:
+            print(e)
+            return JsonResponse({"error": "Montant invalide."}, status=400)
+        except Exception as e:
+            print('error:',e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return HttpResponse("Méthode POST attendue.", status=405)
+
+def update_reaprovisionement_payment(request, id):
+    """Met à jour le paiement d'une commande."""
+    current_reapprovisionnement = get_object_or_404(Reapprovisionnement, id=id)
+    fournisseurs = Fournisseur.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        try:
+            montant_paye = Decimal(request.POST.get("somme_payer", 0) or 0)
+            print(Decimal(request.POST.get("somme_payer", 0) or 0))
+            if montant_paye > 0:
+                current_reapprovisionnement.register_partial_payment(montant_paye)
+                current_reapprovisionnement.save()
+
+           
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": current_reapprovisionnement, "fournisseurs": fournisseurs})
+            
+        except (ValueError, InvalidOperation) as e:
+            print('error:',e)
+            return JsonResponse({"error": "Montant invalide."}, status=400)
+        except Exception as e:
+            print('error:',e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return HttpResponse("Méthode POST attendue.", status=405)
+def increment_order_item(request, item_id):
+    """Incrémente la quantité d'un élément dans la commande et met à jour la dette du client."""
+    order_item = get_object_or_404(OrderItem, id=item_id)
+    client = order_item.order.client
+
+    if request.method == "POST":
+        # Calcul de l'augmentation de la dette en fonction du prix de l'article
+        previous_quantity = order_item.quantity
+        order_item.quantity += 1
+        order_item.save(update_fields=["quantity"])
+
+        # Calcul du coût supplémentaire et mise à jour de la dette
+        item_price = order_item.custom_product_price  # Supposons que chaque `OrderItem` a un attribut `price`
+        additional_cost = item_price * (order_item.quantity - previous_quantity)
+        client.dette += additional_cost
+        client.save(update_fields=["dette"])
+
+        # Réponse partielle si c'est une requête HTMX, sinon redirection
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": order_item.order, "clients": Client.objects.filter(disponible=True)})
+
+        return redirect("order_list")
+
+    return HttpResponse(status=405)
+
+def increment_reaprovisionement_item(request, item_id):
+    """Incrémente la quantité d'un élément dans la commande."""
+    reaprovisionement_item = get_object_or_404(ReapprovisionnementItem, id=item_id)
+
+    if request.method == "POST":
+        reaprovisionement_item.quantite += 1
+        reaprovisionement_item.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reaprovisionement_item.reapprovisionnement, "fournisseurs": Fournisseur.objects.filter(disponible=True)})
+        return redirect("/")
+
+    return HttpResponse(status=405)
+
+def decrement_order_item(request, item_id):
+    """Décrémente la quantité d'un élément dans la commande (minimum 1) et met à jour la dette du client."""
+    order_item = get_object_or_404(OrderItem, id=item_id)
+    client = order_item.order.client
+
+    if request.method == "POST" and order_item.quantity > 1:
+        # Calcul de la réduction de la dette en fonction du prix de l'article
+        previous_quantity = order_item.quantity
+        order_item.quantity -= 1
+        order_item.save(update_fields=["quantity"])
+
+        # Calcul du coût réduit et mise à jour de la dette
+        item_price = order_item.custom_product_price # Assumant que chaque `OrderItem` a un attribut `price`
+        reduction_cost = item_price * (previous_quantity - order_item.quantity)
+        client.dette -= reduction_cost
+        client.save(update_fields=["dette"])
+
+        # Réponse partielle si c'est une requête HTMX, sinon redirection
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/order_items.html", {"order": order_item.order, "clients": Client.objects.filter(disponible=True)})
+
+        return redirect("order_list")
+
+    return HttpResponse(status=405)
+
+def decrement_reaprovisionement_item(request, item_id):
+    """Décrémente la quantité d'un élément dans la commande (minimum 1)."""
+    reaprovisionement_item = get_object_or_404(ReapprovisionnementItem, id=item_id)
+
+    if request.method == "POST" and reaprovisionement_item.quantite > 1:
+        reaprovisionement_item.quantite -= 1
+        reaprovisionement_item.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reaprovisionement_item.reapprovisionnement, "fournisseurs": Fournisseur.objects.filter(disponible=True)})
+        return redirect("/")
+
+    return HttpResponse(status=405)
+
+
+def delete_order_item(request, item_id):
+    """Supprime un élément de la commande et met à jour la dette du client."""
+    clients = Client.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        order_item = get_object_or_404(OrderItem, id=item_id)
+        order = order_item.order  # Obtenir l'ordre directement depuis l'élément
+
+        # Mettre à jour la dette du client avant la suppression
+        client = order.client
+        item_price = order_item.custom_product_price  # Récupérer le prix de l'article
+        total_item_cost = item_price * order_item.quantity  # Coût total de l'élément à supprimer
+        client.dette -= total_item_cost  # Soustraire le coût de la dette
+        client.save(update_fields=["dette"])  # Sauvegarder les modifications
+
+        # Supprimer l'élément de commande
+        order_item.delete()
+
+        # Recalculer le montant restant de la commande
+        order.montant_restant = order.get_total()
+        order.save(update_fields=["montant_restant"])  # Sauvegarder les modifications
+
+        # Réponse partielle avec HTMX
+        if request.headers.get("HX-Request"):
+            return render(
+                request, "partials/order_items.html", {"order": order, "clients": clients}
+            )
+
+        return redirect("order_list")
+
+    return HttpResponse(status=405)
+
+
+def delete_reaprovisionement_item(request, item_id):
+    
+    """Supprime un élément de la commande"""
+    if request.method == "POST":
+        reaprovisionement_item = get_object_or_404(ReapprovisionnementItem, id=item_id)
+        reaprovisionement_item.delete()
+        # Réponse partielle avec HTMX
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reaprovisionement_item.reapprovisionnement, "fournisseurs": Fournisseur.objects.filter(disponible=True)})
+        return redirect("/")
+
+    return HttpResponse(status=405)
+
+def delete_paused_order(request, order_id):
+    paused_orders = Order.objects.filter(status="Mis en pause")
+        # Supprime la commande
+    del_it = Order.objects.filter(id=order_id, status="Mis en pause")
+    del_it.delete()
+    # Si la requête vient d'HTMX
+    if request.headers.get("HX-Request"):
+        # Réponse partielle pour mettre à jour la liste des commandes en pause
+        return render(
+            request, "partials/paused_orders.html", {"paused_orders": paused_orders}
+        )
+
+        # Redirige vers la page principale si ce n'est pas une requête HTMX
+        return redirect("vendor-dashboard")
+
+    return HttpResponse(status=405)
+
+def add_product_to_reapo(request):
+    """Ajoute un produit à la commande en cours du serveur."""
+    reapprovisionnement, _= Reapprovisionnement.objects.get_or_create(autheur=request.user, status ='Non Validé')
+    fournisseur = Fournisseur.objects.filter(disponible=True)
+
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=request.POST.get("product_id"))
+        prix_achat = product.prix_achat
+        prix_de_vente = product.prix_de_vente
+        # qty=request.POST.get("qty")
+        reapprovisionnement_item, created = ReapprovisionnementItem.objects.get_or_create(produit=product,reapprovisionnement = reapprovisionnement, prix_achat = prix_achat, prix_de_vente = prix_de_vente)
+
+        reapprovisionnement_item.quantite = reapprovisionnement_item.quantite + 1 if not created else 1
+        reapprovisionnement_item.save()
+        reapprovisionnement.montant_restant = reapprovisionnement.get_total()
+        # reapprovisionnement.montant_restant = reapprovisionnement.get_total()
+        reapprovisionnement.fournisseur = Fournisseur.objects.first()
+        reapprovisionnement.save()
+
+        if request.headers.get("HX-Request"):
+            return render(request, "partials/achat_items.html", {"reapprovisionnement": reapprovisionnement, "fournisseurs": fournisseur})
+        return redirect("achat", reapprovisionnement_id=reapprovisionnement.id)
+
+    return HttpResponse(status=405)
+
+
+def fiche_Stock(request):
+    fiche_stock = FicheStock.objects.annotate(
+        nombre_entrees=Count('mouvements', filter=Q(mouvements__type_mouvement="ENTRÉE")),
+        nombre_sorties=Count('mouvements', filter=Q(mouvements__type_mouvement="SORTIE")),
+        nombre_autre=Count('mouvements', filter=Q(mouvements__type_mouvement="AUTRE")),
+        total_entrees=Sum('mouvements__quantite', filter=Q(mouvements__type_mouvement="ENTRÉE")),
+        total_sorties=Sum('mouvements__quantite', filter=Q(mouvements__type_mouvement="SORTIE")),
+        date_dernier_mouvement=Max('mouvements__date_mouvement')  # Date du dernier mouvement, renommée
+    )
+    context= {
+        'fiche_stock':fiche_stock,
+    }
+    return render(request, 'pages/fiche_de_stock.html', context)
+
+
+
+@csrf_exempt
+def creer_fournisseur(request):
+    """Crée un nouveau client disponible pour les commandes en cours."""
+    fournisseurs = Fournisseur.objects.filter(disponible=True)
+    reapprovisionnement, _= Reapprovisionnement.objects.get_or_create(autheur=request.user, status ='Non Validé')
+
+    if request.method == 'POST':
+        nom, telephone, adresse = request.POST.get('nom'), request.POST.get('telephone'), request.POST.get('adresse')
+
+        if not nom or not adresse:
+            return JsonResponse({"error": "Nom et adresse sont requis."}, status=400)
+
+        try:
+            Fournisseur.objects.create(nom=nom, telephone=telephone, adresse=adresse)
+            if request.headers.get("HX-Request"):
+                return render(request, "partials/achat_items.html", {"reapprovisionnement": reapprovisionnement, "fournisseurs": fournisseurs})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Méthode non autorisée."}, status=405)
+

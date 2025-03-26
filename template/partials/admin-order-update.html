@@ -1,0 +1,146 @@
+<div class="modal-dialog edit-sales-modal">
+    <div class="modal-content">
+        <div class="page-wrapper p-0 m-0">
+            <div class="content p-0">
+                <div class="page-header p-4 mb-0">
+                    <div class="add-item new-sale-items d-flex">
+                        <div class="page-title">
+                            <h4>modifier la commande #{{order.id}} </h4>
+                        </div>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form hx-post="{% url 'update_order' order.id %}" hx-target="#edit-sales-{{ order.id }}" hx-swap="outerHTML">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="input-blocks">
+                                        <label>Customer</label>
+                                        <div class="row">
+                                            <div class="col-lg-10 col-sm-10 col-10">
+                                                <p>nom du client</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="input-blocks">
+                                        <label>Date de la vente</label>
+                                        <div class="input-groupicon calender-input">
+                                            <p class="p-0"><span><i data-feather="calendar"></i></span> {{order.add_at|date:''}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="input-blocks">
+                                        <label>Nom du vendeur</label>
+                                        <p>{{order.server}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="py-3">
+                        
+                            <div class="table-responsive no-pagination">
+                               
+                                <table class="table  datanew">
+                                    
+                                    <thead>
+                                        <tr>
+                                            <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Prix de vente normal</th>
+                                    <th>Prix de vente promotionnel</th>
+                                    <th>% de reduction</th>
+                                    <th>Prix total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                       
+                                    
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="productimgname">
+                                                    <a href="javascript:void(0);" class="product-img stock-img">
+                                                        <!-- Ici, on peut mettre l'image dynamique si le produit en a une -->
+                                                        <img src="{{ item.product.category.image.url }}" alt="product">
+                                                    </a>
+                                                    <!-- Nom du produit (dynamique) -->
+                                                    <a href="javascript:void(0);"><input type="text" name="custom_name_{{ item.id }}" class="form-control" value="{{ item.custom_product_name }}"></a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="product-quantity">
+                                                    <!-- Quantité dynamique -->
+                                                    <span class="quantity-btn"><i data-feather="minus-circle" class="feather-search"></i></span>
+                                                    <input type="text" class="quntity-input" name="quantity_{{ item.id }}" value="{{ item.quantity }}">
+                                                    <span class="quantity-btn">+<i data-feather="plus-circle" class="plus-circle"></i></span>
+                                                </div>
+                                            </td>
+                                            <!-- Prix original du produit (dynamique) -->
+                                            <td> {{item.product.price }}</td>
+                                            <!-- Prix personnalisé dans la commande (dynamique) -->
+                                            <td><input type="" class="form-control" name="custom_price_{{ item.id }}" value="{{ item.custom_product_price }}"></td>
+                                            <!-- Remise calculée pour cet article (dynamique) -->
+                                            <td> {{ item.remise }}%</td>
+                                            <!-- Total pour cet article (prix * quantité) -->
+                                            <td>{{ item.get_total }}</td>
+                                            <!-- Remise totale calculée -->
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="input-blocks">
+                                        <label>Notes</label>
+                                        <textarea class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 ms-auto">
+                                    <div class="total-order w-100 max-widthauto m-auto mb-4">
+                                        <ul>
+                                           
+                                            <li>
+                                                <h4>Remise</h4>
+                                                <h5>{{order.discount}} Franc Cfa</h5>
+                                            </li>
+                                            <li>
+                                                <h4>Grand Total</h4>
+                                           <h5>{{order.get_total}} Franc Cfa</h5>
+                                            </li>
+                                            <li>
+                                                <h4>Somme Payé</h4>
+                                                <h5>{{order.get_total}} Franc Cfa</h5>
+                                            </li>
+                                            <li>
+                                                <h4>Somme Restante</h4>
+                                                <h5>0 Franc Cfa</h5>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">                   
+                                <div class="col-lg-12 text-end">
+                                    <a href="{% url 'cancel-order' order.id %}" class="btn btn-danger add-danger">Annulé la commande </a>
+
+                                    <button type="button" class="btn btn-cancel add-cancel me-3"
+                                        data-bs-dismiss="modal">Retour</button>
+                                    <button type="submit" class="btn btn-submit add-sale">Enregistrer</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

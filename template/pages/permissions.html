@@ -1,0 +1,141 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block base %}
+{% include 'include/navbar.html' %}
+{% include 'include/sidebar.html' %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="add-item d-flex">
+                <div class="page-title">
+                    <h4>Permission</h4>
+                    <h6>Gerer les permissions de  {{user.username}} </h6>
+                </div>
+            </div>
+            <ul class="table-top-head">
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf">
+                        <img src="{% static 'assets/img/icons/pdf.svg' %}" alt="PDF Icon">
+                    </a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel">
+                        <img src="{% static 'assets/img/icons/excel.svg' %}" alt="Excel Icon">
+                    </a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print">
+                        <i data-feather="printer"></i>
+                    </a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh">
+                        <i data-feather="rotate-ccw"></i>
+                    </a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header">
+                        <i data-feather="chevron-up"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <form class="card table-list-card" method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="table-top d-flex align-items-center justify-content-between">
+                    <div class="search-set d-flex">
+                        <div class="search-input">
+                            <button class="btn btn-searchset">
+                                <i data-feather="search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-added" type="submit">
+                            <i data-feather="save" style="font-size: 7px !important;"></i>    Enregistrer
+                        </button>
+                    </div>
+                </div>
+                     
+                
+
+                <div class="table-responsive mt-3">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Modules</th>
+                                <th>Creation</th>
+                                <th>Modification</th>
+                                <th>Suppression</th>
+                                <th>Visibilité</th>
+                                <th class="no-sort">Tout Permettre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in permissions_data %}
+                            <tr>
+                                <td>{{ data.module }}</td>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox"  name="permissions"  value="{{ data.id }}"   {% if data.permissions.create %}checked{% endif %}>
+                                        <span class="checkmarks"></span>{{ data }}
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox"  name="permissions"  value="{{ data.id }}"   {% if data.permissions.edit %}checked{% endif %}>
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox"  name="permissions"  value="{{ data.id }}"   {% if data.permissions.delete %}checked{% endif %}>
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox"  name="permissions"  value="{{ data.id }}"   {% if data.permissions.view %}checked{% endif %}>
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox"  name="permissions"  value="{{ data.id }}"   class="select-module" 
+                                            {% if data.permissions.create and data.permissions.edit and data.permissions.delete and data.permissions.view %}checked{% endif %}>
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // Select all modules at once
+     document.getElementById("collapse-header").addEventListener("click", function () {
+        const checkboxes = document.querySelectorAll(".datanew tbody input[type='checkbox']");
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Handle row-wise "Allow all"
+    document.querySelectorAll(".select-module").forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            const row = this.closest("tr");
+            const checkboxes = row.querySelectorAll("td input[type='checkbox']");
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+        });
+    }); 
+</script>
+
+{% endblock base %}

@@ -1,0 +1,226 @@
+{% load static %}
+<div class="header">
+
+    <div class="header-left active">
+        <a href="/" class="logo logo-normal">
+            <img src="{% static 'assets/img/logo.png' %}" alt>
+        </a>
+        <a href="/" class="logo logo-white">
+            <img src="{% static 'assets/img/logo-white.png' %}" alt>
+        </a>
+        <a href="/" class="logo-small">
+            <img src="{% static 'assets/img/logo-small.png' %}" alt>
+        </a>
+        <a id="toggle_btn" href="javascript:void(0);">
+            <i data-feather="chevrons-left" class="feather-16"></i>
+        </a>
+    </div>
+
+    <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+        <span class="bar-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+    </a>
+
+    <ul class="nav user-menu">
+
+        <li class="nav-item nav-searchinputs">
+            <!-- <div class="top-nav-search">
+                <a href="javascript:void(0);" class="responsive-search">
+                    <i class="fa fa-search"></i>
+                </a>
+                <form action="#" class="dropdown">
+                    <div class="searchinputs dropdown-toggle" id="dropdownMenuClickable"
+                        data-bs-toggle="dropdown" data-bs-auto-close="false">
+                        <input type="text" placeholder="Search">
+                        <div class="search-addon">
+                            <span><i data-feather="x-circle" class="feather-14"></i></span>
+                        </div>
+                    </div>
+                    <div class="dropdown-menu search-dropdown" aria-labelledby="dropdownMenuClickable">
+                        <div class="search-info">
+                            <h6><span><i data-feather="search" class="feather-16"></i></span>Recent Searches
+                            </h6>
+                            <ul class="search-tags">
+                                <li><a href="javascript:void(0);">Products</a></li>
+                                <li><a href="javascript:void(0);">Sales</a></li>
+                                <li><a href="javascript:void(0);">Applications</a></li>
+                            </ul>
+                        </div>
+                        <div class="search-info">
+                            <h6><span><i data-feather="help-circle" class="feather-16"></i></span>Help</h6>
+                            <p>How to Change Product Volume from 0 to 200 on Inventory management</p>
+                            <p>Change Product Name</p>
+                        </div>
+                        <div class="search-info">
+                            <h6><span><i data-feather="user" class="feather-16"></i></span>Customers</h6>
+                            <ul class="customers">
+                                <li><a href="javascript:void(0);">Aron Varu<img
+                                            src="{% static 'assets/img/profiles/avator1.jpg' %}" alt class="img-fluid"></a>
+                                </li>
+                                <li><a href="javascript:void(0);">Jonita<img
+                                            src="{% static 'assets/img/profiles/avatar-01.jpg' %}" alt class="img-fluid"></a>
+                                </li>
+                                <li><a href="javascript:void(0);">Aaron<img
+                                            src="{% static 'assets/img/profiles/avatar-10.jpg' %}" alt class="img-fluid"></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </div> -->
+        </li>
+
+        <li class="nav-item nav-item-box">
+            <a href="javascript:void(0);" id="btnFullscreen">
+                <i data-feather="maximize"></i>
+            </a>
+        </li>
+
+        <!-- <li class="nav-item dropdown nav-item-box">
+            <a href="javascript:void(0);" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                <i data-feather="bell"></i>
+                <span class="badge rounded-pill">{{notification.count}}</span>
+            </a>
+            <div class="dropdown-menu notifications">
+                <div class="topnav-dropdown-header">
+                    <span class="notification-title">Notifications</span>
+                    <a href="javascript:void(0)" class="clear-noti"> Clear All </a>
+                </div>
+                <div class="noti-content">
+                    <ul class="notification-list">
+
+                        {% for notification in notifications %}
+                        <li class="notification-message">
+                            <a href="#">
+                                <div class="media d-flex">
+                                    <div class="media-body flex-grow-1">
+                                        <p class="noti-details">{{notification}}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+
+                        <div id="notifications" class="notifications-container"></div>
+
+                        <li class="notification-message">
+
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </li> -->
+
+
+        <li class="nav-item dropdown has-arrow main-drop">
+            <a href="javascript:void(0);" class="dropdown-toggle nav-link userset" data-bs-toggle="dropdown">
+                <span class="user-info">
+                    <span class="user-letter">
+                     <i class="fa fa-user-circle text-dark"></i>
+                    </span>
+                    <span class="user-detail">
+                        <span class="user-name">{{request.user.username}}</span>
+                        <span class="user-role">{{request.user.role}}</span>
+                    </span>
+                </span>
+            </a>
+            <div class="dropdown-menu menu-drop-user">
+                <div class="profilename">
+                    <a class="dropdown-item logout pb-0" href="{% url 'logout' %}"><img
+                            src="{% static 'assets/img/icons/log-out.svg' %}" class="me-2" alt="img">Logout</a>
+                </div>
+            </div>
+        </li>
+
+
+           
+        
+    </ul>
+
+
+    <div class="dropdown mobile-user-menu">
+        <a href="javascript:void(0);" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
+        <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="profile.html">My Profile</a>
+            <a class="dropdown-item" href="signin.html">Logout</a>
+        </div>
+    </div>
+
+</div>
+
+<!-- <script>
+        const notificationsContainer = document.getElementById('notifications');
+    
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/notifications/');
+    
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            console.log('message:',message)
+            const notificationElement = document.createElement('div');
+            notificationElement.className = 'notification';
+            notificationElement.innerText = message;
+            notificationsContainer.appendChild(notificationElement);
+        };
+    
+        socket.onclose = function(e) {
+            console.error('WebSocket closed unexpectedly');
+        };
+    </script> -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Connect to the WebSocket
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/notifications/');
+
+        // Listen for messages
+        socket.onmessage = function (event) {
+            const message = event.data;  // Traitez le texte brut directement
+            displayNotification(message);
+        };
+
+        // Display notification in the dropdown
+        function displayNotification(message) {
+            const notificationsContainer = document.getElementById('notifications');
+            const notificationElement = `
+                    <li class="notification-message">
+                        <a href="#">
+                            <div class="media d-flex">
+                                <div class="media-body flex-grow-1">
+                                    <p class="noti-details">${message}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>`;
+            notificationsContainer.insertAdjacentHTML('beforeend', notificationElement);
+
+            // Update the badge number
+            const badge = document.querySelector('.badge.rounded-pill');
+            const currentCount = parseInt(badge.textContent) || 0;
+            badge.textContent = currentCount + 1;
+        }
+
+        // Handle connection errors
+        socket.onerror = function (error) {
+            console.log('WebSocket error:', error);
+        };
+
+        // Optional: Handle WebSocket closure
+        socket.onclose = function () {
+            console.log('WebSocket connection closed');
+        };
+
+        // Clear notifications
+        document.querySelector('.clear-noti').addEventListener('click', function () {
+            const notificationsContainer = document.getElementById('notifications');
+            notificationsContainer.innerHTML = '';  // Clear all notifications
+
+            // Reset the badge number
+            const badge = document.querySelector('.badge.rounded-pill');
+            badge.textContent = '0';
+        });
+    });
+</script>

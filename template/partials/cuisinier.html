@@ -1,0 +1,126 @@
+{% load static %}
+
+<!-- Navigation par onglets pour les serveurs -->
+
+
+
+<ul class="nav  gap-2 flex-row main-menu" role="tablist" style="margin-bottom: 50px;"> 
+    {% for serveur in serveurs %}
+    <li class="py-2 nav-item">
+        <a class="dash-widget nav-link {% if forloop.first %} active {% endif %}" href="#{{ serveur.id }}" data-bs-toggle="tab">
+            <div class="dash-widgetcontent">
+                <h4>{{ serveur }}</h4>
+                <h6 class="mt-3">{{ serveur.commandes.count }} commandes en attente</h6>
+            </div>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+
+<!-- Contenu des commandes pour chaque serveur -->
+<div class="row tab-content">
+    {% for serveur in serveurs %}
+    <div class="tab-pane {% if forloop.first %} active {% endif %}" id="{{ serveur.id }}">
+        <div class="row">
+            {% for order in serveur.commandes.all %}
+          {% if order.status_de_paiement == 'non soldée' %}
+          <div class="col-md-3 d-flex" style="height: fit-content;">  
+            <div class="notes-card notes-card-details w-100 px-3 py-3" style="height: fit-content; background:white;">
+                <div class="notes-wrap-content" style="height: fit-content;">
+                    <h4>
+                        <a href="javascript:void(0);">
+                          Commande  #{{ order.id }}
+                        </a>
+                    </h4>
+                    <p class="wrap-cal">
+                        il y a {{ order.validated_at|timesince }}
+                    </p>
+                    <form action="">
+                        <div class="product-wrap" style="display: flex; flex-wrap: wrap; justify-content: start; height: max-content;">
+                            <!-- Affichage des items de la commande -->
+                            {% for item in order.items.all %}
+                            <div class="product-list d-flex align-items-center justify-content-between w-100"  style="background: rgba(254, 159, 67, .08);
+    border-radius: 5px;
+    ">
+                                <div class="d-flex align-items-center flex-fill">
+                                    <!-- <a href="javascript:void(0);" class="img-bg me-2">
+                                        <img src="{{ item.product.category.image.url }}" alt="Products" style="width: 70px;">
+                                    </a> -->
+                                    <div class="info d-flex align-items-center justify-content-between flex-fill">
+                                        <div>
+                                            <h6 ><a href="javascript:void(0);">{{ item.custom_product_name }} x {{ item.quantity }}</a></h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Bloc de paiement partiel -->
+                        <div class="block-section">
+                            <div class="selling-info mt-5 pt-2">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <form class="input-block mt-5" hx-post="{% url 'update_payment' order.id %}" hx-target="#orders-list" method="post">
+                                            {% csrf_token %}
+                                            <label>Somme à payer</label>
+                                            <div class="row py-2">
+                                                <div class="col-10">
+                                                    <input type="number" value="{{ order.montant_restant }}" class="form-control" name="somme_payer" min="0" step="0.01" hx-trigger="change">
+                                                    <button type="submit" style="display: none;" id="save_payement"></button> 
+                                                </div>
+                                                <div class="col-2">
+                                                    <a href="#" onclick="document.getElementById('save_payement').click()" class="btn btn-success btn-icon fa fa-check">
+                                                        <i data-feather="check" class="feather-16"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tableau de récapitulatif des paiements -->
+                            <div class="order-total py-4">
+                                <table class="table table-responsive table-borderless">
+                                    <tr>
+                                        <td>Remise</td>
+                                        <td class="text-end">{{ order.discount }} Franc Cfa</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Grand Total</td>
+                                        <td class="text-end">{{ order.get_total }} Franc Cfa</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Somme Payée</td>
+                                        <td class="text-end">{{ order.montant_paye }} Franc Cfa</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Somme Restante</td>
+                                        <td class="text-end">{{ order.montant_restant }} Franc Cfa</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'actions -->
+                        <hr class="my-3">
+                        <div class="btn-row d-sm-flex align-items-center justify-content-between col-12">
+                            <a href="javascript:void(0);" class="btn btn-success btn-icon flex-fill" data-bs-toggle="modal" data-bs-target="#print-receipt">
+                                <span class="me-1 d-flex align-items-center">
+                                    <i data-feather="credit-card" class="feather-16"></i>
+                                </span>
+                                Recevoir le paiement
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+          {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+ 

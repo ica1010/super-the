@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="description" content="POS - Bootstrap Admin Template">
+    <meta name="keywords" content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
+    <meta name="author" content="Dreamguys - Bootstrap Admin Template">
+    <meta name="robots" content="noindex, nofollow">
+    <title></title>
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.png">
+
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/css/dataTables.bootstrap5.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/all.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.theme.default.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.10"></script>
+
+</head>
+
+<body hx-ext="ws" ws-connect="/ws/notifications/" >
+    <div class="main-wrapper">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="liveToast" class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header text-default">
+                    <strong class="me-auto">{{message.tags}}</strong>
+                    <!-- <small>11 mins ago</small> -->
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+       {% block base %}
+       {% endblock base %}
+    </div>
+    
+    <script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-3.7.1.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/js/feather.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/js/jquery.slimscroll.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/js/jquery.dataTables.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/js/dataTables.bootstrap5.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/plugins/apexchart/apexcharts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/plugins/apexchart/chart-data.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/js/moment.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"
+        type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"
+        type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+
+    <script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"
+        type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/js/theme-script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'assets/js/script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
+    <script src="{% static 'cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js' %}"
+        data-cf-settings="bd2c7c24cd6044b322c2190f-|49" defer></script>
+<!-- Inclure jQuery (nécessaire pour Select2) -->
+
+</body hx-debug="true">
+<script>
+        document.getElementById('filter-btn').addEventListener('click', function() {
+        // Vérifier si l'élément d'erreur existe
+        const errorMessage = document.getElementById('error-message');
+        if (!errorMessage) {
+            console.error('L\'élément d\'erreur n\'existe pas dans le DOM.');
+            return;
+        }
+    
+        // Réinitialiser le message d'erreur
+        errorMessage.textContent = '';
+    
+        const dateDebutInput = document.getElementById('date_debut').value;
+        const dateFinInput = document.getElementById('date_fin').value;
+    
+        // Vérifier si les dates saisies sont valides
+        const dateDebut = dateDebutInput ? new Date(dateDebutInput) : null;
+        const dateFin = dateFinInput ? new Date(dateFinInput) : null;
+    
+        // Gestion des erreurs
+        if (dateDebut && isNaN(dateDebut.getTime())) {
+            errorMessage.textContent += 'La date de début est invalide. Veuillez vérifier le format.\n';
+        }
+        if (dateFin && isNaN(dateFin.getTime())) {
+            errorMessage.textContent += 'La date de fin est invalide. Veuillez vérifier le format.\n';
+        }
+    
+        // Vérifier si dateDebut est supérieure à dateFin
+        if (dateDebut && dateFin && dateDebut > dateFin) {
+            errorMessage.textContent += 'La date de début ne peut pas être supérieure à la date de fin.\n';
+        }
+    
+        // Filtrage des lignes
+        const rows = document.querySelectorAll('#order-table tbody tr');
+        rows.forEach(function(row) {
+            const orderDate = new Date(row.getAttribute('data-date'));
+            if ((dateDebut && orderDate < dateDebut) || (dateFin && orderDate > dateFin)) {
+                row.style.display = 'none';
+            } else {
+                row.style.display = '';
+            }
+        });
+    
+        // Afficher un message si aucune commande n'est trouvée après le filtrage
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+        if (visibleRows.length === 0) {
+            errorMessage.textContent += 'Aucune commande ne correspond aux critères de filtrage.';
+        }
+    });
+
+    document.body.addEventListener('htmx:load', function(event) {
+        console.log('HTMX loaded: ', event);
+    });
+    
+    document.body.addEventListener('htmx:error', function(event) {
+        console.error('HTMX error: ', event);
+    });
+    const phoneInputField = document.querySelector("#phone");
+    const phoneInput = window.intlTelInput(phoneInputField, {
+      utilsScript:
+        "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+    });
+
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    });
+
+
+
+
+    </script>
+
+</html>

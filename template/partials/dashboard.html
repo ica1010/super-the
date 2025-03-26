@@ -1,0 +1,290 @@
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="content">
+    <div class="row  col-lg-6">
+        <div class="col" style="min-width: fit-content !important;">
+            <div class="dash-widget d-flex flex-column">
+                <div class="dash-widgetimg">
+                    <span><img src="{% static 'assets/img/icons/dash1.svg' %}" alt="img"></span>
+                </div>
+                <br>
+                <div class="dash-widgetcontent text-center">
+                    <h5><span class="counters" data-count="{{completed_orders_total}}">0 </span>  Franc cfa</h5>
+                    <h6>Somme des commande non payé</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col" style="min-width: fit-content !important;">
+            <div class="dash-widget dash1 d-flex flex-column">
+                <div class="dash-widgetimg">
+                    <span><img src="{% static 'assets/img/icons/dash2.svg' %}" alt="img"></span>
+                </div>
+                <br>
+                <div class="dash-widgetcontent m-0 text-center">
+                    <h5><span class="counters" data-count="{{close_orders_total}}">0 </span> Franc Cfa</h5>
+                    <h6>Somme des commande payé</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="row">
+        <div class="col-lg-8 col-sm-12 col-12 d-flex">
+            <div class="card flex-fill">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Commande payé & Commande non payé</h5>
+                    
+                </div>
+                <div class="card-body">
+                    <canvas id="orderChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-sm-12 col-12 d-flex">
+            <div class="card table-list-card">
+                <div class="card-body pb-0">
+                    <div class="table-top table-top-two table-top-new">
+                        <div class="search-set mb-0">
+                            <div class="total-employees">
+                                <h6><i data-feather="users" class="feather-user"></i>categories<span>{{categories.count}}</span>
+                                </h6>
+                            </div>
+                           <div class="search-input">
+                                <a href class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
+                            </div> --
+                        </div>
+                    </div>
+        
+                    <div class="table-responsive">
+                        <table class="table  datanew">
+                            <thead>
+                                <tr>
+                                    <th class="no-sort">Category</th>
+                                    <th class="no-sort">Products</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                {% for cat in categories %}
+                                    <tr>
+                                        <td>
+                                            <div class="userimgname">
+                                                <a data-bs-toggle="modal" data-bs-target="#cat-{{cat.id}}" class="product-img">
+                                                    <img src="{{cat.image.url}}" alt="product">
+                                                </a>
+                                                <div>
+                                                    <a data-bs-toggle="modal" data-bs-target="#cat-{{cat.id}}" >{{cat.name}}</a>
+                                                    <span class="emp-team">({{cat.products.count}} Produits)</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a data-bs-toggle="modal" data-bs-target="#cat-{{cat.id}}" >
+                                                <ol>
+                                                
+                                                    {% for pro in cat.products.all %}
+                                                    {% if forloop.counter <= 3 %}
+                                                        <li> {{forloop.counter}} - {{ pro.name }} - {{pro.prix_de_vente}} Franc CFA </li>
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                        
+                                                </ol>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                    
+                             
+                        
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        
+        </div>
+    </div> -->
+
+    <div class="card table-list-card">
+        <div class="card-body pb-0">
+            <div class="table-top table-top-two table-top-new">
+                <div class="search-set mb-0">
+                    <div class="total-employees">
+                        <h6><i data-feather="shopping-bag" class="shopping-bag"></i>Commandes recents
+                        </h6>
+                    </div>
+                    <div class="search-input">
+                        <a href class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
+                    </div>                
+                </div>
+                <div class="search-path row">
+                    <input type="date" name="" id="min" style="width: 170px;" class="form-control col-4" >
+                    <input type="date" name="" id="max" class="form-control col-4" style="width: 170px;" >
+                    <a class="btn btn-filter" id="filter_search col-3">
+                        <i data-feather="filter" class="filter-icon"></i>
+                        <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive" id="orders-table">
+                <table class="table  datanew" >
+                    <thead>
+                        <tr>
+                            <th>commande ID</th>
+                            <th>total price</th>
+                            <th>status</th>
+                            <th>payement</th>
+                            <th>payement</th>
+                            <th>payement</th>
+                            <th>payement</th>
+                            <th>date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in   all_orders  %}
+                        <tr>
+                            <td data-order="{{order.id}}">#{{order.id}} </td>
+                            <td data-order="{{order.server}}">{{order.server}}</td>
+                            <td  data-date="{{ order.add_at|date:'Y-m-d' }}" >{{order.add_at|date:'d M Y , h:i'}}</td>
+                            <td data-order="{{order.get_total}}">{{order.get_total}} Franc Cfa</td>
+                            <td ><span class="badge {% if order.status == 'En cours' %}
+                                bg-outline-warning
+                                {% else %}
+                                badge-linesuccess
+                                {% endif %}">{{order.status}}</span></td>
+                            <td><span class="badge  {% if order.status_de_paiement == 'non soldée' %}
+                                badge-linedanger
+                                {% else %}
+                                badge-linesuccess
+                                {% endif %}">{{order.status_de_paiement}}</span></td>
+                            <td>
+                                    <a class="p-2" data-bs-toggle="modal" data-bs-target=".print-receipt-{{order.id}}">
+                                        Voir le recu
+                                    </a>
+                            </td>
+                            <td class="action-table-data">
+                                <div class="edit-delete-action">
+                                    {% if order.status != 'Retournée' %}
+                                    <a class="me-2 p-2" href="{% url 'modify-order' order.id %}">
+                                        <i data-feather="edit" class="feather-edit"></i>
+                                    </a>
+                                   
+                                    {% endif %}
+                                    <a class="me-2 edit-icon  p-2" href="{% url 'order-detail' order.id %}">
+                                        <i data-feather="eye" class="feather-eye"></i>
+                                    </a>
+                        
+                                    <form 
+                                    action="{% url 'admin-delete-order' order.id %}" 
+                                  method="get"
+                                          enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <button type="submit" id="btn-{{orders.id}}" class="d-none"></button>
+                                        <a onclick="document.getElementById('btn-{{orders.id}}').click();" href="javascript:void(0);" class="confirm-text p-2" type="submit">
+                                            <i data-feather="trash-2" class="feather-trash-2"></i>
+                                        </a>
+                                    </form>
+                        
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                            
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% for cat in categories %}
+<div class="modal fade modal-default " id="cat-{{cat.id}}" >
+    <div class="modal-dialog modal-dialog-top">
+        <div class="modal-content">
+            <div class="d-flex justify-content-end">
+                <button type="button" class="close p-0" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+                <div class="tax-invoice">
+                    <h6 class="text-start mb-4">{{cat}} </h6>
+                </div>
+                <table class="table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>Produit</th>
+                            <th>prix de vente</th>
+                            <th>prix d'achat</th>
+                            <th>quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pro in cat.products.all %}
+                        <tr>
+                            <td class="px-2" style="width: max-content !important;">{{forloop.counter}}</td>
+                            <td class="px-2" style="width: max-content !important;">{{pro}}</td>
+                            <td class="px-2" style="width: max-content !important;">{{pro.prix_de_vente}} Franc Cfa</td>
+                            <td class="px-2" style="width: max-content !important;">{{pro.prix_achat}} Franc Cfa</td>
+                            <td  class="px-2" style="width: max-content !important;">{{ pro.stock_actuel}} en stock </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+              
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+    
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('orderChart').getContext('2d');
+        var orderChart = new Chart(ctx, {
+            type: 'bar', // Type du graphique, peut être changé en 'line', 'pie', etc.
+            data: {
+                labels: [], // Les étiquettes des données (Commandes complétées, Commandes payées)
+                datasets: [{
+                    label: 'Total des commandes',
+                    data: [], // Les totaux des commandes
+                    backgroundColor: ['#36A2EB', '#FF6384'],
+                    borderColor: ['#36A2EB', '#FF6384'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Fonction pour mettre à jour les données du graphique
+        function updateChartData() {
+            fetch("{% url 'get_order_data' %}")
+            .then(response => response.json())
+            .then(data => {
+                // Mettre à jour les étiquettes et les données
+                orderChart.data.labels = data.labels;
+                orderChart.data.datasets[0].data = data.totals;
+                orderChart.update(); // Mettre à jour le graphique
+            });
+        }
+
+        // Charger les données au démarrage
+        updateChartData();
+
+        // Recharger les données toutes les 5 secondes pour le temps réel
+        setInterval(updateChartData, 5000);
+    });
+</script>

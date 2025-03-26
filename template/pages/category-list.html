@@ -1,0 +1,230 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block base %}
+{% include 'include/navbar.html' %}
+{% include 'include/sidebar.html' %}
+<div class="page-wrapper">
+    <div class="content">
+        
+        <div class="page-header">
+            <div class="add-item d-flex">
+                <div class="page-title">
+                    <h4>Listes des categories des produits</h4>
+                    <h6>la liste de toutes les categories enregistrées</h6>
+                </div>
+            </div>
+            <ul class="table-top-head">
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf"><img
+                            src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel"><img
+                            src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><i data-feather="printer"
+                            class="feather-rotate-ccw"></i></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh"><i data-feather="rotate-ccw"
+                            class="feather-rotate-ccw"></i></a>
+                </li>
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
+                            data-feather="chevron-up" class="feather-chevron-up"></i></a>
+                </li>
+            </ul>
+            <div class="page-btn">
+                <a href="" data-bs-toggle="modal" data-bs-target="#add-product" class="btn btn-added"><i
+                        data-feather="plus-circle" class="me-2"></i>ajouter un nouveau produit</a>
+            </div>
+        </div>
+
+        <div class="card table-list-card">
+            <div class="card-body">
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-input">
+                            <a href="javascript:void(0);" class="btn btn-searchset"><i data-feather="search"
+                                    class="feather-search"></i></a>
+                        </div>
+                    </div>
+                   <div class="search-path row">
+                        <input type="date" name="" id="date_debut" style="width: 170px;" class="form-control col-4" >
+                        <input type="date" name=""  id="date_fin" class="form-control col-4" style="width: 170px;" >
+                        <a class="btn btn-filter" id="filter-btn">
+                            <i data-feather="filter" class="filter-icon"></i>
+                            <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card mb-0" id="filter_inputs">
+                    <div class="card-body pb-0">
+                        <div class="row">
+                            <div class="col-lg-12 col-sm-12">
+                                <div class="row">
+
+                                    <div class="col-lg-2 col-sm-6 col-12">
+                                        <div class="input-blocks">
+                                            <a class="btn btn-filters ms-auto"> <i data-feather="search"
+                                                    class="feather-search"></i> Search </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive product-list">
+                    <table class="table datanew" id="order-table">
+                        <thead>
+                            <tr>
+                                <th class="no-sort" >Image</th>
+                                <th class="no-sort" >categorie</th>
+                                <th class="no-sort"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="category-list">
+                            {% include 'partials/category-list.html' %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="add-product">
+    <div class="modal-dialog edit- sales-modal">
+        <div class="modal-content">
+            <div class="page-wrapper p-0 m-0">
+                <div class="content p-0">
+                    <div class="page-header p-4 mb-0">
+                        <div class="add-item new-sale-items d-flex">
+                            <div class="page-title">
+                                <h4>nouvelle categories</h4>
+                            </div>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form hx-post="{% url 'add-category' %}" hx-swap="innerHTML"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#category-list" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            {% for field in form %}
+                                            {% for error in field.errors %}
+                                            <li>{{ field.label }}: {{ error }}</li>
+                                            {% endfor %}
+                                            {% endfor %}
+                                            {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    <div class="input-blocks">
+                                        <div class="mb-3">
+                                            {{ form.name.label_tag }}
+                                            {{ form.name }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ form.image.label_tag }}
+                                            {{ form.image }}
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary">Ajouter la cetegorie </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productTypeCheckbox = document.getElementById("id_product_type");
+        const stockField = document.getElementById("id_stock");
+        const alertStockField = document.getElementById("id_alert_stock");
+
+        function toggleStockFields() {
+            const isComptable = productTypeCheckbox.checked;
+            stockField.disabled = !isComptable;
+            alertStockField.disabled = !isComptable;
+        }
+
+        // Initial state on page load
+        toggleStockFields();
+
+        // Listen for changes to the product type checkbox
+        productTypeCheckbox.addEventListener("change", toggleStockFields);
+    });
+</script>
+{% for category in categories %}
+<div class="modal fade" id="edit-category-{{category.id}}">
+    <div class="modal-dialog edit- sales-modal">
+        <div class="modal-content">
+            <div class="page-wrapper p-0 m-0">
+                <div class="content p-0">
+                    <div class="page-header p-4 mb-0">
+                        <div class="add-item new-sale-items d-flex">
+                            <div class="page-title">
+                                <h4>changer le produit {{category.name}} </h4>
+                            </div>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form hx-post="{% url 'update-category' category.id %}" hx-swap="innerHTML"
+                                  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#category-list"
+                                  enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="input-blocks">
+                                        <div class="mb-3">
+                                            <label for="nom">Nom du categorie</label>
+                                            <input type="text" class="form-control" name="nom" id="nom" required value="{{ category.name }}">
+                                        </div>
+                    
+                                        <div class="mb-3">
+                                            <label for="image">image du categorie</label>
+                                            <input type="file" name="image" class="form-control" required value="{{ category.image.url }}">
+                                        </div>
+                    
+                                        <button type="submit" class="btn btn-primary">Changer la categorie </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+
+
+{% endblock base %}

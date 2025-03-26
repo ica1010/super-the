@@ -1,0 +1,190 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block base %}
+
+{% include 'include/navbar.html' %}
+<div class="page-wrapper pos-pg-wrapper ms-0">
+    <div class="content pos-design p-0">
+        <div class="btn-row d-sm-flex align-items-center">
+            <a href="javascript:void(0);" class="btn btn-secondary mb-xs-3" data-bs-toggle="modal"
+                data-bs-target="#paused-orders"><span class="me-1 d-flex align-items-center"><i data-feather="pause"
+                        class="feather-16"></i></span>Commandes mis en pause</a>
+        </div>
+        <div class="row align-items-start pos-wrapper">
+            <div class="col-md-12 col-lg-8">
+                <div class="pos-categories tabs_wrapper">
+                    <h5>Categories</h5>
+                    <p>Select From Below Categories</p>
+                    <ul class="tabs owl-carousel pos-category">
+                        <li id="all" class="active">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'assets/img/categories/category-01.png' %}" alt="Categories">
+                            </a>
+                            <h6><a href="javascript:void(0);">Tous les categories </a></h6>
+                            <span>{{products.count}} produits </span>
+                  </li>
+                  {% for category in categories  %}
+                 
+                        <li id="{{category.id}}">
+                            <a href="javascript:void(0);">
+                                <img src="{{category.image.url}}" alt="Categories">
+                            </a>
+                            <h6><a href="javascript:void(0);">{{category.name}}</a></h6>
+                            <span>{{category.products.count}} Produits</span>
+                        </li>
+                           
+                  {% endfor %}
+                    </ul>
+                    <div class="pos-products">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="mb-3">Products</h5>
+                        </div>
+                        <div class="tabs_container">
+                            <div class="tab_content active" data-tab="all">
+                                <div class="row">
+                                    {% for product in products %}
+                                    <form id="{{ product.id }}" hx-post="{% url 'add_product_to_order' %}" 
+                                          hx-target="#order-items" method="post" class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                
+                                        <div class="product-info default-cover card" hx-trigger="click" hx-post="{% url 'add_product_to_order' %}" hx-target="#order-items">
+                                            <a href="javascript:void(0);" class="img-bg" style="overflow:hidden">
+                                                <img src="{{ product.image.url }}" alt="Products">
+                                                <span><i data-feather="check" class="feather-16"></i></span>
+                                            </a>
+                                            <h6 class="cat-name">{{ product.code }}</h6>
+                                            <h6 class="product-name">{{ product.name }}</h6>
+                                            <div class="d-flex align-items-center justify-content-between price">
+                                                <p>{{ product.price }}</p>
+                                            </div>
+                                        </div>
+                                    </form>
+                                {% endfor %}
+                                
+                                </div>
+                            </div>
+                            {% for category in categories  %}
+                            
+                            <div class="tab_content" data-tab="{{category.id}}">
+                                <div class="row">
+                                    {% for product in category.products.all  %}
+                                    
+                                    <form id="{{ product.id }}" hx-post="{% url 'add_product_to_order' %}" 
+                                    hx-target="#order-items" method="post" class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="product_id" value="{{ product.id }}">
+                          
+                                  <div class="product-info default-cover card" hx-trigger="click" hx-post="{% url 'add_product_to_order' %}" hx-target="#order-items">
+                                      <a href="javascript:void(0);" class="img-bg" style="overflow:hidden">
+                                          <img src="{{ product.image.url }}" alt="Products">
+                                          <span><i data-feather="check" class="feather-16"></i></span>
+                                      </a>
+                                      <h6 class="cat-name">{{ product.code }}</h6>
+                                      <h6 class="product-name">{{ product.name }}</h6>
+                                      <div class="d-flex align-items-center justify-content-between price">
+                                          <p>{{ product.price }}</p>
+                                      </div>
+                                  </div>
+                              </form>
+
+                                      
+                                    {% endfor %}
+                                </div>
+                            </div>
+                              
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 col-lg-4 ps-0">
+                {% include 'partials/order_items.html' %}
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="modal fade pos-modal" id="paused-orders" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header p-4">
+                <h5 class="modal-title">Commande mis en pause</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="tabs-sets">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="purchase" role="tabpanel"
+                            aria-labelledby="purchase-tab">
+                            <div class="table-top">
+                                <div class="search-set">
+                                    <div class="search-input">
+                                        <a class="btn btn-searchset d-flex align-items-center h-100"><img
+                                                src="{% static 'assets/img/icons/search-white.svg' %}" alt="img"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive" id="paused-orders-list">
+                                
+                                        {% include 'partials/paused_orders.html' %}
+                                    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-client">
+    <div class="modal-dialog edit- sales-modal">
+        <div class="modal-content">
+            <div class="page-wrapper p-0 m-0">
+                <div class="content p-0">
+                    <div class="page-header p-4 mb-0">
+                        <div class="add-item new-sale-items d-flex">
+                            <div class="page-title">
+                                <h4>nouveau client</h4>
+                            </div>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form hx-post="{% url 'new-clien-on-order' %}" method="post" hx-target="#order-items"
+                                hx-swap="outerHTML">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="input-blocks">
+                                        <div class="mb-3">
+                                            <input type="text" name="nom" placeholder="Nom" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <input type="text" name="telephone" placeholder="Téléphone">
+                                        </div>
+                                        <div class="mb-3"></div>
+                                        <textarea name="adresse" placeholder="Adresse" required></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" class="close" data-bs-dismiss="modal"
+                                    aria-label="Close">Enregistrer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock base %}

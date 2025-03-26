@@ -1,0 +1,10 @@
+{% extends "base/base.html" %}
+{% load static %}
+        {% block base %}
+        {% include 'include/navbar.html' %}
+        {% include 'include/sidebar.html' %}
+        <div class="page-wrapper">
+                
+        {% include 'partials/dashboard.html' %}
+        </div>
+        {% endblock base %}

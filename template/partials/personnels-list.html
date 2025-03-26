@@ -1,0 +1,44 @@
+{% load static %}
+{% for user in users %}
+<tr>
+    <td>#user-{{user.id}}</td>
+
+    <td>
+        <div class="userimgname cust-imgname">
+        <a href="javascript:void(0);" class="product-img">
+            <img src="{% static 'assets/img/users/user-23.jpg' %}" alt="product">
+        </a>
+        <a href="javascript:void(0);">{{user.nom}} {{user.prenoms}}</a>
+    </div>
+</td>
+    <td>{{user.address}}</td>
+    <td>{{user.telephone}}</td>
+    <td>{{user.role}}</td>
+
+    <td>{{user.date_joined|date:'d M Y'}}</td>
+    <td class="action-table-data">
+
+        <a class="me-2 edit-icon  p-2" href="" style="height: fit-content;">
+            <i data-feather="eye" class="feather-eye"></i>
+        </a>
+        <a class="p-2 me-2" href="{% url 'manage-permissions' user.id %}">
+            <i data-feather="shield" class="shield"></i>
+        </a>
+        <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}"  style="height: fit-content;">
+            <i data-feather="edit" class="feather-edit"></i>
+        </a>
+
+        <div class="edit-delete-action mx-2">
+            <form  method="post" hx-post="{% url 'user-delete' user.id %}" hx-target="#user-list" hx-swap="innerHTML" >
+                {% csrf_token %}
+                <button type="submit" id="btn-{{user.id}}" class="d-none"></button>
+                <a onclick="document.getElementById('btn-{{user.id}}').click();" href="javascript:void(0);" class="confirm-text p-2" type="submit">
+                    <i data-feather="trash-2" class="feather-trash-2"></i>
+                </a>
+            </form>
+        </div>
+       
+    </td>
+</tr>
+{% endfor %}
+    

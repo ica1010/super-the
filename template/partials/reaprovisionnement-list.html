@@ -1,0 +1,27 @@
+{% load static %}
+{% for reaprovisionnement in reaprovisionnements %}
+<tr>
+    <td>#{{reaprovisionnement.id}} </td>
+    <td>{{reaprovisionnement.fournisseur}}</td>
+    <td>{{reaprovisionnement.date_commande|date:'d M Y'}}</td>
+
+    <td>
+        
+        {% for item in reaprovisionnement.items.all %}
+            {{item.produit}} x {{item.quantite}} a {{item.prix_achat}} Franc CFA  <br>
+        {% endfor %}
+            
+    </td>
+    <td>{{reaprovisionnement.prix_total}} Franc Cfa</td>
+    <td>{{reaprovisionnement.quantite_totale}} article livré</td>
+    <!-- <td class="action-table-data">
+        <div class="edit-delete-action">
+            <a class="me-2 edit-icon  p-2" href="">
+                <i data-feather="eye" class="feather-eye"></i>
+            </a>
+
+        </div>
+    </td> -->
+</tr>
+{% endfor %}
+    

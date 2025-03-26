@@ -1,0 +1,241 @@
+{% load static %}
+
+<aside class="product-order-list" id="achat-items">
+
+    <div class="head d-flex align-items-center justify-content-between w-100">
+        <div class>
+            <h5>{{ reapprovisionnement }}</h5>
+
+            {% if order %}
+            <span>ID : #Achat-{{ reapprovisionnement.id }}</span>
+            {% endif %}
+        </div>
+        <!-- Button to Refresh Order Items -->
+        <div>
+            <button hx-get="{% url 'refresh_reapovisionement'  %}" hx-target="#achat-items" hx-swap="innerHTML" class="btn btn-primary">
+                Actualiser
+            </button>
+        </div>
+    </div>
+    {% if reapprovisionnement %}
+    <div class="customer-info block-section">
+        <h6>Information du fournisseur</h6>
+        <div class="input-block d-flex align-items-center">
+            <form  class="flex-grow-1" hx-post="{% url 'choose_fournissuer' reapprovisionnement.id %}" hx-target="#achat-items" hx-swap="innerHTML"   >
+                {% csrf_token %}
+                <select class="form-control seclect" name="fourniseur_id" hx-trigger="change" >
+                   {% for fournisseur in fournisseurs %}
+                   <option value="{{fournisseur.id}}" {% if reapprovisionnement.fournisseur.nom == fournisseur.nom %}selected{% endif %} >{{fournisseur.nom}}</option>
+                   {% endfor %}
+                </select>
+                <button type="submit" id="save_user" style="display: none;">soumettre</button>
+            </form>
+            <a href="#" onclick="document.getElementById('save_user').click()" class="btn btn-success btn-icon fa fa-check" ><i data-feather="check" class="feather-16" ></i></a>
+                <a href="#" class="btn btn-primary btn-icon fa fa-plus" data-bs-toggle="modal"
+                data-bs-target="#add-client" ><i data-feather="user-plus" class="feather-16" ></i></a>
+        </div>
+        
+    </div>
+
+    <div class="product-added block-section">
+        <div class="head-text d-flex align-items-center justify-content-between px-2">
+            {% if fournisseur.id %}
+            <h6 class="d-flex align-items-center mb-0">Produits reaprovisionnées<span class="count"> {{ reapprovisionnement.items.all.count }}</span>
+            </h6>
+            
+            <form  hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" style="display: none;" id="clear-{{ item.id }}"></button>
+                <a href="javascript:void(0);" class="d-flex align-items-center text-danger"
+                   onclick="document.getElementById('clear-{{ item.id }}').click();"><span class="me-1"><i
+                           class="feather-16 fe fe-x"></i></span>Clear all</a>
+            </form>
+            {% endif %}
+        </div>
+        <div class="product-wrap">
+            <div class="product-wrap">
+                <input type="hidden" value="{{ order.id }}" id="order-id">
+
+                {% for item in reapprovisionnement.items.all %}
+                <div class="product-list d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center product-info" data-bs-toggle="modal"
+                         data-bs-target="#recents-{{ item.id }}">
+                        <a data-bs-toggle="modal" data-bs-target="#recents-{{ item.id }}" class="img-bg">
+                            <img src="{{ item.produit.category.image.url }}" alt="Products">
+                        </a>
+                        <div class="info">
+                            <span>#stock-{{ reapprovisionnement.id }}</span>
+                            <h6><a href="javascript:void(0);">{{ item.produit.category }} - {{ item.produit.name }}</a></h6>
+                            <p class="py-0 mb-0">prix d'achat :{{ item.prix_achat }} Franc Cfa</p>
+                            <p class="py-0">prix vente :{{ item.prix_de_vente }} Franc Cfa</p>
+
+                        </div>
+                    </div>
+                    <div class="qty-item text-center">
+                        <!-- Decrement Quantity -->
+                        <form hx-post="{% url 'decrement_reaprovisionement_item' item.id %}" hx-target="#achat-items"
+                              hx-swap="outerHTML">
+                            {% csrf_token %}
+                            <button type="submit" style="display: none;" id="rem-qty-{{ item.id }}"></button>
+                            <a href="javascript:void(0);" class="dec d-flex justify-content-center align-items-center"
+                               onclick="document.getElementById('rem-qty-{{ item.id }}').click();">
+                                <i class="feather-14 fa fa-minus"></i>
+                            </a>
+                        </form>
+
+                        <input type="text" class="form-control text-center" name="qty" value="{{ item.quantite }}"
+                               readonly>
+
+                        <!-- Increment Quantity -->
+                        <form  hx-post="{% url 'increment_reaprovisionement_item' item.id  %}" hx-target="#achat-items"
+                              hx-swap="outerHTML">
+                            {% csrf_token %}
+                            <button type="submit" style="display: none;" id="add-qty-{{ item.id }}"></button>
+                            <a href="javascript:void(0);" class="inc d-flex justify-content-center align-items-center"
+                               onclick="document.getElementById('add-qty-{{ item.id }}').click();">
+                                <i class="feather-14 fa fa-plus"></i>
+                            </a>
+                        </form>
+                    </div>
+
+                    <!-- Delete Item -->
+                    <form hx-post="{% url 'delete_reaprovisionement_item' item.id  %}" hx-target="#achat-items" hx-swap="outerHTML"
+                          class="d-flex align-items-center action">
+                        {% csrf_token %}
+                        <button type="submit" style="display: none;" id="del-form-{{ item.id }}"></button>
+                        <a class="btn-icon btn delete-icon confirm-text"
+                           onclick="document.getElementById('del-form-{{ item.id }}').click();">
+                            <i class="feather-14 fa fa-trash"></i>
+                        </a>
+                    </form>
+                </div>
+
+                <div class="modal fade pos-modal" id="recents-{{ item.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header p-1 px-3">
+                                <h5 class="modal-title">Item Modification</h5>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="d-flex align-items-center product-info row">
+                                    <a class="img-bg col-md-3 row">
+                                        <img src="{{ item.produit.category.image.url }}" alt="Products">
+                                        <p>{{ item.produit.name }}</p>
+                                    </a>
+                                    <form method="POST" hx-post="{% url 'update_oreaprovisionement_item' item.id  %}"
+                                          hx-target="#achat-items" hx-swap="outerHTML" class="info col-md-9">
+                                        {% csrf_token %}
+                                        <div class="row" style="align-items: center;">Prix d'achat<span  class="col-3"><input style="border: none !important;width:fit-content" type="text" value="{{ item.prix_achat }}" name="prix_achat" class="form-control"></span>Franc Cfa</div>
+                                       
+                                        
+                                        <div class="row" style="align-items: center;">Prix de vente<span  class="col-3"><input style="border: none !important;width:fit-content" type="text" value="{{ item.prix_de_vente }}" name="prix_de_vente" class="form-control"></span>Franc Cfa</div>
+                                    <div class="row mt-5"><button type="submit" class="btn btn-success w-100" class="close"
+                                        data-bs-dismiss="modal" aria-label="Close"> Enregistrer</button></div>
+                                        
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="block-section">
+        <div class="d-grid btn-block">
+        <a class="btn btn-secondary" href="javascript:void(0);">
+            Grand Total : {{ reapprovisionnement.prix_total }} Franc cfa
+        </a>
+    </div> -->
+
+        <div class="selling-info">
+            <div class="row">
+                <div class="col-12">
+                    <form class="input-block"  hx-post="{% url 'update_reaprovisionement_payment' reapprovisionnement.id %}" hx-target="#achat-items" method="post" hx-swap="outerHTML" >
+                       {% csrf_token %}
+                        <label>Somme payée</label>
+                        <div class="row">
+                            <div class="col-10">
+                             <input type="number" 
+                             value="{{ reapprovisionnement.montant_restant }}" 
+                             class="form-control" 
+                             name="somme_payer" 
+                             min="0" 
+                             step="0.01"
+                             hx-trigger="change">
+                             <button type="submit" style="display: none;" id="save_payement" >submit</button> 
+                            </div>
+                            <div class="col-2">
+                             <a href="#" onclick="document.getElementById('save_payement').click()" class="btn btn-success btn-icon fa fa-check" ><i data-feather="check" class="feather-16" ></i></a>
+                            </div>
+                         </div>
+                        <!-- <input type="number" 
+                               value="" 
+                               class="form-control" 
+                               name="somme_payer" 
+                               min="0" 
+                               step="0.01"
+                               hx-trigger="change">
+                        <button type="submit" >submit</button> Cache le bouton -->
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="order-total">
+            <table class="table table-responsive table-borderless">
+             
+                <tr>
+                    <td>Grand Total</td>
+                    <td class="text-end">{{reapprovisionnement.prix_total}} Franc Cfa</td>
+                </tr>
+                <tr>
+                    <td>Somme Payé</td>
+                    <td class="text-end">{{reapprovisionnement.montant_paye}} Franc Cfa</td>
+                </tr>
+                <tr>
+                    <td>Somme Restante</td>
+                    <td class="text-end"> {{reapprovisionnement.montant_restant}} Franc Cfa</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+
+   
+
+    <div class="btn-row d-sm-flex align-items-center mt-4 justify-content-between">
+        <form hx-post="{% url 'save-reaprovisionement' reapprovisionnement.id %}" hx-target="#achat-items" hx-swap="innerHTML">
+            {% csrf_token %}
+    
+            <input type="checkbox" name="decaissement"><label for="">Prendre l'argent dans la caisse</label>
+       
+          
+                <button type="submit" id="nextcomm" style="display: none;"></button>
+        </form>
+
+
+       <a class="btn btn-success btn-icon flex-fill w-100 col-12" aria-label="Commande suivante"
+       onclick="document.getElementById('nextcomm').click();">
+        <span class="me-1 d-flex align-items-center">
+            <i data-feather="credit-card" class="feather-16"></i>
+        </span>
+        Validé
+    </a>
+    
+
+
+
+    
+
+
+
+    {% endif %}
+<aside>

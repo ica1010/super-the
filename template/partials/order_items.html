@@ -297,22 +297,7 @@
                     </div>
                        
                 </div>
-                {% for item in order.items.all %}
-                  <div class="card" style="display: flex;justify-content:center;" id="autocollant-{{item.id}}">
-                    <p> {{item.product.code}} </p>
-                    <div class="row">
-                        <div class="col text-center">
-                            <p> {{item.product.size}} </p>
-                        </div>
-                        <div class="col text-center">
-                            {{order.id}}
-                        </div>
-                       <center>
-                        {{forloop.counter}}-{{order.items.count}}
-                       </center>
-                    </div>
-                  </div>
-                {% endfor %}
+               
                     <div class="d-flex justify-content-center mt-4">
                             <button onclick="printReceipt()" class="btn btn-success btn-icon flex-fill" aria-label="Commande suivante">
                                 <span class="me-1 d-flex align-items-center">
@@ -325,8 +310,28 @@
             </div>
         </div>
     </div>
-
+<div class="d-none">
+    {% for item in order.items.all %}
+    <div class="card" style="display: flex;justify-content:center;" id="autocollant-{{item.id}}">
+      <p style="width: 100%;"> {{item.product.code}} </p>
+      <br>
+      <div style="width: 100%;">
+          <div style="width: 49%; text-align:center">
+              <p> {{item.product.size}} </p>
+          </div>
+          <div style="width: 49%; text-align:center">
+              {{order.id}}
+          </div>
+         <p style="text-align: center;" >
+            {{forloop.counter}}-{{order.items.count}}
+         </p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
     {% endif %}
+
+
 </aside>
 
 <script>

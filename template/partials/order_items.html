@@ -316,14 +316,13 @@
 
 <script>
     function printReceipt() {
-        // Vérifie si QZ Tray est bien connecté
         qz.websocket.connect().then(() => {
-            return qz.printers.find("Nom_de_ton_imprimante"); // Remplace par le nom de ton imprimante
+            return qz.printers.getDefault(); // Récupère l'imprimante par défaut
         }).then((printer) => {
             var config = qz.configs.create(printer);
             
-            // Récupère le contenu du ticket
-            var receiptText = document.querySelector("#print-receipt").innerText; // Utiliser innerText pour garder la mise en forme simple
+            // Récupérer le contenu du ticket
+            var receiptText = document.querySelector("#print-receipt").innerText; // Utiliser innerText pour un format simple
             var data = receiptText.split("\n"); // Convertir en tableau pour l'impression ligne par ligne
     
             return qz.print(config, data);
@@ -334,7 +333,7 @@
         });
     }
     
-    </script>
+</script>    
     
  
 <script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>

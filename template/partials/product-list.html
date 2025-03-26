@@ -2,14 +2,14 @@
 {% for product in products %}
 <tr id="product-{{ product.id }}" data-date="{{ product.add_at|date:'Y-m-d' }}">
     <td> 
-        <img src="{{product.category.image.url}}" style="width:150px;" alt=""> 
+        <img src="{{product.image.url}}" style="width:150px;" alt=""> 
     </td>
     <td>{{product.name}}</td>
     <td><p>{{product.category.name}}</p></td>
     <td>{{product.code}}</td>
     <td>{{product.price}}</td>
     <td> {{product.add_at}}</td>
-    <td class="action-table-data">
+    <td class="action-table-data" style="display: table-cell;">
         <div class="edit-delete-action">
      
             <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-product-{{product.id}}">

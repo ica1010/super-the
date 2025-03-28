@@ -149,27 +149,22 @@ class Order(models.Model):
         return f"Order {self.id} - {self.get_status_display()}"
 
 
-    # @transaction.atomic
-    # def save(self, *args, **kwargs):
-    #     if self.status == 'En cours':
-    #         Order.objects.filter(status='En cours', server=self.server).update(status='Mis en pause')
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        if self.status == 'En cours':
+            Order.objects.filter(status='En cours', server=self.server).update(status='Mis en pause')
+            self.consume_ingredients()
 
-    #     if self.montant_restant < 1 :
-    #         Order.objects.filter(status_de_paiement='soldée')
+        if self.montant_restant < 1 :
+            Order.objects.filter(status_de_paiement='soldée')
+            
 
-    #     super(Order, self).save(*args, **kwargs)
+        super(Order, self).save(*args, **kwargs)
 
     def get_total(self):
         """Calculates total of all items in the order."""
         return sum(item.get_total() for item in self.items.all())
 
-    # def update_amounts(self):
-    #     """Updates remaining amount and payment status."""
-    #     total = self.get_total()
-    #     self.montant_restant = total - self.montant_paye
-    #     Caisse
-    #     self.status_de_paiement = 'soldée' if self.montant_restant == 0 else 'non soldée'
-    #     self.save()
 
     def register_partial_payment(self, amount):
         """Handles partial payments for the order."""
@@ -208,18 +203,17 @@ class Order(models.Model):
             'total_discount_percentage': total_discount_percentage
         }
     def consume_ingredients(self):
-            # """ Met à jour le stock des ingrédients en fonction des produits commandés """
-            # for order_item in self.items.all():
-            #     product = order_item.product
-            #     quantity_ordered = order_item.quantity
+            """ Met à jour le stock des ingrédients en fonction des produits commandés """
+            for order_item in self.items.all():
+                product = order_item.product
+                quantity_ordered = order_item.quantity
 
-            #     for product_ingredient in product.ingredients.all():
-            #         ingredient = product_ingredient.ingredient
-            #         quantity_needed = product_ingredient.quantity_required * quantity_ordered
+                for product_ingredient in product.ingredients.all():
+                    ingredient = product_ingredient.ingredient
+                    quantity_needed = product_ingredient.quantity_required * quantity_ordered
 
-            #         self._update_stock(ingredient, quantity_needed)
+                    self._update_stock(ingredient, quantity_needed)
 
-        pass
     def _update_stock(self, ingredient, quantity_needed):
         """ Réduit le stock de l'ingrédient en fonction du FIFO """
         stock_entries = Ingredient.objects.filter(id=ingredient.id, quantity__gt=0).order_by("entry_date")
@@ -235,13 +229,6 @@ class Order(models.Model):
                 quantity_needed -= entry.quantity
                 entry.quantity = 0
                 entry.save()
-
-    def save(self, *args, **kwargs):
-        """ Appelle consume_ingredients() uniquement lors de la confirmation de commande """
-        
-        self.consume_ingredients()  # Déduire les ingrédients si la commande passe en "confirmée"
-
-        super().save(*args, **kwargs)  # Sauvegarde l'objet
 
 
 class OrderItem(models.Model):

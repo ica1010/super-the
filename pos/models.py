@@ -208,17 +208,18 @@ class Order(models.Model):
             'total_discount_percentage': total_discount_percentage
         }
     def consume_ingredients(self):
-            """ Met à jour le stock des ingrédients en fonction des produits commandés """
-            for order_item in self.items.all():
-                product = order_item.product
-                quantity_ordered = order_item.quantity
+            # """ Met à jour le stock des ingrédients en fonction des produits commandés """
+            # for order_item in self.items.all():
+            #     product = order_item.product
+            #     quantity_ordered = order_item.quantity
 
-                for product_ingredient in product.ingredients.all():
-                    ingredient = product_ingredient.ingredient
-                    quantity_needed = product_ingredient.quantity_required * quantity_ordered
+            #     for product_ingredient in product.ingredients.all():
+            #         ingredient = product_ingredient.ingredient
+            #         quantity_needed = product_ingredient.quantity_required * quantity_ordered
 
-                    self._update_stock(ingredient, quantity_needed)
+            #         self._update_stock(ingredient, quantity_needed)
 
+        pass
     def _update_stock(self, ingredient, quantity_needed):
         """ Réduit le stock de l'ingrédient en fonction du FIFO """
         stock_entries = Ingredient.objects.filter(id=ingredient.id, quantity__gt=0).order_by("entry_date")

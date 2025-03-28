@@ -39,6 +39,20 @@
     {% if order %}
     <div class="customer-info block-section">
         <h6>Information du client</h6>
+        <div class="input-block d-flex align-items-center">
+            <form  class="flex-grow-1 row"  hx-post="{% url 'choose_customer' order.id %}" hx-target="#order-items" method="post">
+                {% csrf_token %}
+                <select  class="form-control  select js-example-basic-single select2" name="client_id" hx-trigger="change" >
+                   {% for client in clients %}
+                   <option value="{{client.id}}" {% if order.client.nom == client.nom %}selected{% endif %} >{{client.nom}}</option>
+                   {% endfor %}
+                </select>
+                <button class="btn btn-primary col-2" style="display: none;" id="save_user" type="submit" ><i class=" fa fa-save"></i></button>
+            </form>
+            <a href="#" onclick="document.getElementById('save_user').click()" class="btn btn-success btn-icon fa fa-check" ><i data-feather="check" class="feather-16" ></i></a>
+                <a href="#" class="btn btn-primary btn-icon fa fa-plus" data-bs-toggle="modal"
+                data-bs-target="#add-client" ><i data-feather="user-plus" class="feather-16" ></i></a>
+        </div>
     </div>
 
     <div class="product-added block-section">
@@ -70,7 +84,7 @@
                         <div class="info">
                             <span>{{ item.product.code }}</span>
                             <h6><a href="javascript:void(0);">{{ item.product.category }} - {{ item.custom_product_name }}</a></h6>
-                            <p>{{ item.custom_product_price }} Franc Cfa</p>
+                            <p>{{ item.product.price }} </p>
                         </div>
                     </div>
                     <div class="qty-item text-center">
@@ -81,7 +95,7 @@
                             <button type="submit" style="display: none;" id="rem-qty-{{ item.id }}"></button>
                             <a href="javascript:void(0);" class="dec d-flex justify-content-center align-items-center"
                                onclick="document.getElementById('rem-qty-{{ item.id }}').click();">
-                                <i  data-feather="minus-circle" class="feather-14"></i>
+                               <i style="font-size: 17px;" class="fa fa-minus"></i>
                             </a>
                         </form>
 
@@ -93,9 +107,9 @@
                               hx-swap="outerHTML">
                             {% csrf_token %}
                             <button type="submit" style="display: none;" id="add-qty-{{ item.id }}"></button>
-                            <a href="javascript:void(0);" class="inc d-flex justify-content-center align-items-center"
+                            <a href="javascript:void(0);" class="inc d-flex justify-content-center align-items-center text-xl"
                                onclick="document.getElementById('add-qty-{{ item.id }}').click();">
-                                <i  data-feather="minus-plus" class="feather-14" ></i>
+                                <i style="font-size: 17px;" class="fa fa-plus"></i>
                             </a>
                         </form>
                     </div>
@@ -107,7 +121,7 @@
                         <button type="submit" style="display: none;" id="del-form-{{ item.id }}"></button>
                         <a class="btn-icon btn delete-icon confirm-text"
                            onclick="document.getElementById('del-form-{{ item.id }}').click();">
-                            <i data-feather="trash-2" class="feather-14"></i>
+                           <i class="fa fa-x"></i>
                         </a>
                     </form>
                 </div>
@@ -138,7 +152,7 @@
                                             <input type="number" value="{{ item.custom_product_price }}"
                                                    name="product_price" class="form-control">
                                         </div>
-                                        <div class="col-4">Franc Cfa</div>
+                                        <div class="col-4"></div>
                                         </p>
                                         <button type="submit" class="btn btn-success w-100" class="close"
                                                 data-bs-dismiss="modal" aria-label="Close"> Enregistrer</button>
@@ -157,7 +171,7 @@
     <div class="block-section">
         <div class="d-grid btn-block">
         <a class="btn btn-secondary" href="javascript:void(0);">
-            Grand Total : {{ order.get_total }} Franc cfa
+            Grand Total : {{ order.get_total }} 
         </a>
     </div>
 
@@ -165,19 +179,19 @@
             <table class="table table-responsive table-borderless">
                 <tr>
                     <td>Remise</td>
-                    <td class="text-end">{{order.discount}} Franc Cfa</td>
+                    <td class="text-end">{{order.discount}} </td>
                 </tr>
                 <tr>
                     <td>Grand Total</td>
-                    <td class="text-end">{{order.get_total}} Franc Cfa</td>
+                    <td class="text-end">{{order.get_total}} </td>
                 </tr>
                 <tr>
                     <td>Somme Payé</td>
-                    <td class="text-end">{{order.montant_paye}} Franc Cfa</td>
+                    <td class="text-end">{{order.montant_paye}} </td>
                 </tr>
                 <tr>
                     <td>Somme Restante</td>
-                    <td class="text-end"> {{order.montant_restant}} Franc Cfa</td>
+                    <td class="text-end"> {{order.montant_restant}} </td>
                 </tr>
             </table>
         </div>
@@ -194,7 +208,7 @@
                 hx-target="#order-items" hx-swap="outerHTML">
                     <button type="submit" id="ann-ticket" style="display: none;" >c</button>
                     <a onclick="document.getElementById('ann-ticket').click()" >
-                        <span class=" text-white">Annulé le ticket</span>
+                        <span class="text-white" style="font-weight:bold"> <i class="fa fa-x"></i> Annulé le ticket </span>
                     </a>
                 </form>
             </div>
@@ -205,7 +219,7 @@
                 </form>
                 <div class="default-cover" onclick="document.getElementById('paus').click();">
                     <a href="javascript:void(0);">
-                        <i data-feather="pause" class="feather-16"></i>
+                        <i class="fa fa-pause"></i>
                         <span>Mettre en pause</span>
                     </a>
                 </div>
@@ -218,7 +232,7 @@
                 </form>
                 <button class="default-cover bg-success w-100"  onclick="document.getElementById('nextcomm').click();" >
                     <a href="javascript:void(0);">
-                        <span style="color: white;">Suivant</span>
+                        <span style="color: white;font-weight:bold">Suivant <i class="fa fa-arrow-right px-2" ></i></span>
                     </a>
                 </button>
             </div>
@@ -391,38 +405,4 @@
         }
     }
 </script>
-
-
- 
-<script data-cfasync="false" src="{% static '/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"></script>
-<script src="{% static 'assets/js/jquery-3.7.1.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/js/feather.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/js/jquery.slimscroll.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/js/jquery.dataTables.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/js/dataTables.bootstrap5.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/js/bootstrap.bundle.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/plugins/apexchart/apexcharts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/plugins/apexchart/chart-data.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/js/moment.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"
-    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"
-    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/plugins/select2/js/select2.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-
-<script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"
-    type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/js/theme-script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'assets/js/script.js' %}" type="bd2c7c24cd6044b322c2190f-text/javascript"></script>
-<script src="{% static 'cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js' %}"
-    data-cf-settings="bd2c7c24cd6044b322c2190f-|49" defer></script>
 

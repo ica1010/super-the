@@ -14,6 +14,10 @@ urlpatterns = [
     
     
     path('list-des-produits', views.ProductList, name='products-list'),
+    path('list-des-ingredients', views.IngredientsList, name='ingredients-list'),
+    path('ingredient/nouvelle', views.ingredient_create, name='ingredient_create'),
+    path('ingredient/modifier/<pk>', views.ingredient_update, name='ingredient_update'),
+    path('ingredient/delete/<pk>', views.ingredient_delete, name='ingredient_delete'),
     path('ajouter-un-produits', views.add_product, name='add-product'),
     path('changer-le-produit/<int:id>', views.update_product, name='update-product'),
     path('supprimé-de-produit/<int:id>/', views.delete_product, name='delete-product'),
@@ -24,10 +28,10 @@ urlpatterns = [
     path('changer-le-categorie/<int:id>', views.update_Category, name='update-category'),
     path('supprimé-de-categorie/<int:id>/', views.delete_Category, name='delete-category'),
     
-    
+     path('add-ingredient-form/', views.add_ingredient_form, name='add_ingredient_row'),
     # path('reaprovisionnement/<int:id>', views.reaprovisionnement, name='reaprovisionnement'),
     path('reaprovisionnement', views.reaprovisionnementList, name='reaprovisionnementList'),
-    path('reapprovisionnement/', views.create_reapprovisionnement, name='create_reapprovisionnement'),
+    path('reapprovisionnement/<id>', views.reaprovisionnement, name='reaprovisionnement'),
     path('add-item-form/', views.add_item_form, name='add_item_form'),
     
     

@@ -1,13 +1,9 @@
 {% load static %}
 {% for user in users %}
 <tr>
-    <td>#user-{{user.id}}</td>
 
     <td>
         <div class="userimgname cust-imgname">
-        <a href="javascript:void(0);" class="product-img">
-            <img src="{% static 'assets/img/users/user-23.jpg' %}" alt="product">
-        </a>
         <a href="javascript:void(0);">{{user.nom}} {{user.prenoms}}</a>
     </div>
 </td>
@@ -18,12 +14,12 @@
     <td>{{user.date_joined|date:'d M Y'}}</td>
     <td class="action-table-data">
 
-        <a class="me-2 edit-icon  p-2" href="" style="height: fit-content;">
+        <!-- <a class="me-2 edit-icon  p-2" href="" style="height: fit-content;">
             <i data-feather="eye" class="feather-eye"></i>
-        </a>
-        <a class="p-2 me-2" href="{% url 'manage-permissions' user.id %}">
+        </a> -->
+        <!-- <a class="p-2 me-2" href="{% url 'manage-permissions' user.id %}">
             <i data-feather="shield" class="shield"></i>
-        </a>
+        </a> -->
         <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}"  style="height: fit-content;">
             <i data-feather="edit" class="feather-edit"></i>
         </a>

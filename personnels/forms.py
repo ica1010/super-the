@@ -7,7 +7,15 @@ class CustomUserCreationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('telephone', 'nom', 'prenoms', 'address', 'role')
-
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ajout de classes Bootstrap pour le style
+        self.fields['telephone'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Numéro de téléphone'})
+        self.fields['nom'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Noms'})
+        self.fields['prenoms'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Prénoms'})
+        self.fields['address'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Adresse'})
+        self.fields['role'].widget.attrs.update({'class': 'form-control'})
     def clean_telephone(self):
         telephone = self.cleaned_data.get('telephone')
         if User.objects.filter(telephone=telephone).exists():
@@ -26,3 +34,29 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('nom', 'prenoms', 'telephone', 'address', 'role')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Ajout de classes Bootstrap pour le style
+        self.fields['telephone'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Numéro de téléphone',
+            'value': self.instance.telephone if self.instance else ''
+        })
+        self.fields['nom'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Nom',
+            'value': self.instance.nom if self.instance else ''
+        })
+        self.fields['prenoms'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Prénoms'
+        })
+        self.fields['address'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Adresse'
+        })
+        self.fields['role'].widget.attrs.update({
+            'class': 'form-control'
+        })

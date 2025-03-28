@@ -9,10 +9,10 @@ class User(AbstractUser):
         ('CASHIER', 'Caissier'),
         ('WAITER', 'Serveur'),
     ]
-    nom = models.CharField(max_length=50, default='default value')
-    prenoms = models.CharField(max_length=50 , default='default value')
-    telephone = models.CharField(max_length=50 , default='default value')
-    address = models.CharField(max_length=50 , default='default value')
+    nom = models.CharField(max_length=50,)
+    prenoms = models.CharField(max_length=50 ,)
+    telephone = models.CharField(max_length=50 ,)
+    address = models.CharField(max_length=50 ,)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     disponible = models.BooleanField(default=True)
 

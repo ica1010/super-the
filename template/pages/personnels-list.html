@@ -9,8 +9,7 @@
         <div class="page-header">
             <div class="add-item d-flex">
                 <div class="page-title">
-                    <h4>Listes des commandes</h4>
-                    <h6>la liste de toutes les commandes enregistrées</h6>
+                    <h4>Listes du personnels</h4>
                 </div>
             </div>
             <ul class="table-top-head">
@@ -42,7 +41,7 @@
 
             <div class="page-btn">
                 <a href="" data-bs-toggle="modal" data-bs-target="#add-client" class="btn btn-added"><i
-                        data-feather="plus-circle" class="me-2"></i>nouveau client</a>
+                        data-feather="plus-circle" class="me-2"></i>nouveau</a>
             </div>
         </div>
 
@@ -89,13 +88,12 @@
                         <thead>
                             <tr>
 
-                                <th>Id </th>
-                                <th>Utilisateur</th>
+                                <th>Noms</th>
                                 <th>Addresse</th>
                                 <th>Numéro de telephone</th>
                                 <th>role</th>
                                 <th>Date d'ajout</th>
-                                <th class="no-sort">Action</th>
+                                <th class="no-sort"></th>
                             </tr>
                         </thead>
                         <tbody id="user-list">
@@ -132,7 +130,7 @@
                                 <div class="row">
 
                                     <div class="input-blocks">
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_telephone">Téléphone:</label>
                                             {{ form.telephone }}
                                             {% if form.telephone.errors %}
@@ -145,7 +143,7 @@
                                         </div>
 
                                         <!-- Champ nom -->
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_nom">Nom:</label>
                                             {{ form.nom }}
                                             {% if form.nom.errors %}
@@ -158,7 +156,7 @@
                                         </div>
 
                                         <!-- Champ prénoms -->
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_prenoms">Prénoms:</label>
                                             {{ form.prenoms }}
                                             {% if form.prenoms.errors %}
@@ -171,7 +169,7 @@
                                         </div>
 
                                         <!-- Champ adresse -->
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_address">Adresse:</label>
                                             {{ form.address }}
                                             {% if form.address.errors %}
@@ -184,7 +182,7 @@
                                         </div>
 
                                         <!-- Champ rôle -->
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_role">Rôle:</label>
                                             {{ form.role }}
                                             {% if form.role.errors %}
@@ -199,7 +197,7 @@
 
 
                                 </div>
-                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                <button type="submit" class="btn btn-primary w-100">Enregistrer</button>
                             </form>
                         </div>
                     </div>
@@ -232,19 +230,7 @@
                                 {% csrf_token %}
                                 <div class="row">
                                     <div class="input-blocks">
-                                        <div class="">
-                                            <label for="id_telephone">Téléphone:</label>
-                                            {{ form.telephone }}
-                                            {% if form.telephone.errors %}
-                                            <div class="error">
-                                                {% for error in form.telephone.errors %}
-                                                <p>{{ error }}</p>
-                                                {% endfor %}
-                                            </div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_nom">Nom:</label>
                                             {{ form.nom }}
                                             {% if form.nom.errors %}
@@ -256,7 +242,7 @@
                                             {% endif %}
                                         </div>
 
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_prenoms">Prénoms:</label>
                                             {{ form.prenoms }}
                                             {% if form.prenoms.errors %}
@@ -267,8 +253,18 @@
                                             </div>
                                             {% endif %}
                                         </div>
-
-                                        <div class="">
+                                        <div class="mb-3">
+                                            <label for="id_telephone">Téléphone:</label>
+                                            {{ form.telephone }}
+                                            {% if form.telephone.errors %}
+                                            <div class="error">
+                                                {% for error in form.telephone.errors %}
+                                                <p>{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
                                             <label for="id_address">Adresse:</label>
                                             {{ form.address }}
                                             {% if form.address.errors %}
@@ -280,7 +276,7 @@
                                             {% endif %}
                                         </div>
 
-                                        <div class="">
+                                        <div class="mb-3">
                                             <label for="id_role">Rôle:</label>
                                             {{ form.role }}
                                             {% if form.role.errors %}
@@ -293,27 +289,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Enregistrer</button>
-                            </form>
-                            <form method="post">
-                                {% csrf_token %}
-                                <h3>Gestion des permissions pour {{ user.username }}</h3>
-                                <ul>
-                                    {% for permission in all_permissions %}
-                                    <li>
-                                        <label>
-                                            <input 
-                                                type="checkbox" 
-                                                name="permissions" 
-                                                value="{{ permission.id }}" 
-                                                {% if permission in user_permissions %}checked{% endif %}
-                                            >
-                                            {{ permission.name }}
-                                        </label>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                                <button type="submit" class="btn btn-primary w-100">Enregistrer</button>
                             </form>
                         </div>
                     </div>

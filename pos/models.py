@@ -6,8 +6,16 @@ from django.db import models, transaction
 from django.db.models import Sum, F
 from django.utils import timezone
 from djmoney.models.fields import MoneyField
+from measurement.measures import Mass
+from django_measurement.models import MeasurementField
 from django.contrib.auth.models import Permission
+from djmoney.money import Money
 
+
+UNIT_CHOICES = [
+    ("Litre", "Litre"),
+    ("Unité", "Unité"),
+]
 
 class Category(models.Model):
     image = models.ImageField(upload_to='category', default='img.jpeg')
@@ -35,8 +43,75 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-class Order(models.Model):
 
+class Ingredient(models.Model):
+    name = models.CharField(max_length=100)
+    price = MoneyField(max_digits=14, decimal_places=0, default_currency='XOF', blank=True, null=True)
+    quantity = models.FloatField(blank=True, null=True)
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default="Litre")
+    entry_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class ProductIngredient(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="ingredients")
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name="products")
+    quantity_required = models.FloatField(blank=True, null=True)
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default="l")
+
+    def __str__(self):
+        return f"{self.quantity_required} {self.unit} de {self.ingredient.name} pour {self.product.name}"
+
+class StockMovement(models.Model):
+    MOUVEMENT_TYPE = [
+        ('Entrée', 'Entrée'),
+        ('Sortie', 'Sortie'),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="stock_movements", null=True, blank=True)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name="stock_movements", null=True, blank=True)
+    unit_price = MoneyField(max_digits=14, decimal_places=0, default_currency='XOF', blank=True, null=True)
+    amount_paid = MoneyField(max_digits=14, decimal_places=0, default_currency='XOF', blank=True, null=True)
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="stock_movements", null=True, blank=True)
+    quantity_used = models.FloatField(blank=True, null=True)
+    quantity = models.FloatField(blank=True, null=True)
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default="l")
+    movement_date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+    type_de_mouvement = models.CharField(max_length=20, choices=MOUVEMENT_TYPE, default='Sortie')
+    decaisement = models.BooleanField(default=True)
+
+
+    def consume_ingredient(self, product_ingredient):
+        remaining_qty = product_ingredient.quantity_required
+        stock_entries = Ingredient.objects.filter(id=product_ingredient.ingredient.id, quantity__gt=0).order_by("entry_date")
+        for entry in stock_entries:
+            if remaining_qty <= 0:
+                break
+            if entry.quantity >= remaining_qty:
+                entry.quantity -= remaining_qty
+                entry.save()
+                remaining_qty = 0
+            else:
+                remaining_qty -= entry.quantity
+                entry.quantity = 0
+                entry.save()
+
+    @property
+    def total_amount(self):
+        """ Calcule le montant total = quantité * prix unitaire """
+        if self.unit_price and self.quantity:
+            return self.unit_price * self.quantity
+        return Money(0, 'XOF')
+
+    @property
+    def remaining_amount(self):
+        """ Calcule le reste à payer = montant total - montant payé """
+        return self.total_amount - (self.amount_paid or Money(0, 'XOF'))
+    def __str__(self):
+        return f"Stock Movement for {self.product.name if self.product else self.ingredient.name}"
+
+class Order(models.Model):
     STATUS_CHOICES = [
         ('En cours', 'En cours'),
         ('Validé', 'Validé'),
@@ -49,6 +124,7 @@ class Order(models.Model):
         ('soldée', 'soldée'),
         ('non soldée', 'non soldée'),
     ]
+
 
     def get_default_client():
         from crm.models import Client
@@ -68,7 +144,6 @@ class Order(models.Model):
     validated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
     add_at = models.DateTimeField(auto_now_add=True)
     change_at = models.DateTimeField(auto_now=True)
-    delete = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Order {self.id} - {self.get_status_display()}"
@@ -132,6 +207,40 @@ class Order(models.Model):
             'total_discount_value': total_discount_value,
             'total_discount_percentage': total_discount_percentage
         }
+    def consume_ingredients(self):
+            """ Met à jour le stock des ingrédients en fonction des produits commandés """
+            for order_item in self.items.all():
+                product = order_item.product
+                quantity_ordered = order_item.quantity
+
+                for product_ingredient in product.ingredients.all():
+                    ingredient = product_ingredient.ingredient
+                    quantity_needed = product_ingredient.quantity_required * quantity_ordered
+
+                    self._update_stock(ingredient, quantity_needed)
+
+    def _update_stock(self, ingredient, quantity_needed):
+        """ Réduit le stock de l'ingrédient en fonction du FIFO """
+        stock_entries = Ingredient.objects.filter(id=ingredient.id, quantity__gt=0).order_by("entry_date")
+
+        for entry in stock_entries:
+            if quantity_needed <= 0:
+                break
+            if entry.quantity >= quantity_needed:
+                entry.quantity -= quantity_needed
+                entry.save()
+                quantity_needed = 0
+            else:
+                quantity_needed -= entry.quantity
+                entry.quantity = 0
+                entry.save()
+
+    def save(self, *args, **kwargs):
+        """ Appelle consume_ingredients() uniquement lors de la confirmation de commande """
+        
+        self.consume_ingredients()  # Déduire les ingrédients si la commande passe en "confirmée"
+
+        super().save(*args, **kwargs)  # Sauvegarde l'objet
 
 
 class OrderItem(models.Model):

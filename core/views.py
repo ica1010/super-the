@@ -1,5 +1,5 @@
 from personnels.models import User
-from pos.models  import Caisse, Category, Order, Product
+from pos.models  import Caisse, Category, Ingredient, Order, Product
 # Create your views here.
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -13,49 +13,11 @@ from openpyxl.styles import Font, PatternFill
 
 @login_required(login_url='login')
 def Dashboard(request):
-    categories = Category.objects.all()
-    products = Product.objects.all()
-    clients = Client.objects.filter(disponible=True)
-    today = timezone.now().date() 
-    try:
-        caisse = Caisse.objects.get(user=request.user)
-    except :
-        caisse = {}
-    # Commandes complètes
-    completed_orders = Order.objects.filter(status='Validé',status_de_paiement="non soldée").prefetch_related('items__product')
-    # Commandes payées
-    paused_orders = Order.objects.filter(status = 'Mis en pause')
-    
-    
-    all_orders = completed_orders.union(Order.objects.filter(status_de_paiement='soldée').prefetch_related('items__product')) 
-    
-    
-    completed_orders_total = Order.objects.filter(status='Validé').annotate(
-        order_total=Sum('items__product__price', field='items__quantity')
-    ).aggregate(Sum('order_total'))['order_total__sum'] or 0
-    
-    
-    close_orders_total =  Order.objects.filter(status_de_payement='soldée').annotate(
-        order_total=Sum('items__product__price', field='items__quantity')
-    ).aggregate(Sum('order_total'))['order_total__sum'] or 0
-    
-    
-    context = {
-        'categories': categories,
-        'clients': clients,
-        'paused_orders': paused_orders,
-        'completed_orders':completed_orders,
-        'all_orders':all_orders,
-        'completed_orders_total':completed_orders_total,
-        'close_orders_total':close_orders_total,
-        'products':products,
-        'caisse':caisse,
-    }
 
     if request.headers.get('HX-Request'):
-        return render(request, 'partials/dashboard.html', context)
+        return render(request, 'partials/dashboard.html')
         
-    return render(request, 'pages/dashboard.html',context)
+    return render(request, 'pages/dashboard.html')
 
     
 
@@ -98,15 +60,13 @@ def VendorDashboard(request):
  
 def Achat(request):
     fournisseurs = Fournisseur.objects.filter(disponible=True)
-    categories = Category.objects.all()
-    products = Product.objects.filter(product_type = True)
-    today = timezone.now().date() 
+    ingredients = Ingredient.objects.all()
+ 
     
     
     context = {
         'fournisseurs': fournisseurs,
-        'categories': categories,
-        'products':products,
+        'ingredients':ingredients,
     }
 
     

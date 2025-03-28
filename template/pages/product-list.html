@@ -5,7 +5,7 @@
 {% include 'include/sidebar.html' %}
 <div class="page-wrapper">
     <div class="content">
-       
+
         <div class="page-header">
             <div class="add-item d-flex">
                 <div class="page-title">
@@ -26,10 +26,10 @@
                     <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><i data-feather="printer"
                             class="feather-rotate-ccw"></i></a>
                 </li>
-                <li>
+                <!-- <li>
                     <a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh"><i data-feather="rotate-ccw"
                             class="feather-rotate-ccw"></i></a>
-                </li>
+                </li> -->
                 <li>
                     <a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
                             data-feather="chevron-up" class="feather-chevron-up"></i></a>
@@ -50,9 +50,9 @@
                                     class="feather-search"></i></a>
                         </div>
                     </div>
-                   <div class="search-path row">
-                        <input type="date" name="" id="date_debut" style="width: 170px;" class="form-control col-4" >
-                        <input type="date" name=""  id="date_fin" class="form-control col-4" style="width: 170px;" >
+                    <div class="search-path row">
+                        <input type="date" name="" id="date_debut" style="width: 170px;" class="form-control col-4">
+                        <input type="date" name="" id="date_fin" class="form-control col-4" style="width: 170px;">
                         <a class="btn btn-filter" id="filter-btn">
                             <i data-feather="filter" class="filter-icon"></i>
                             <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
@@ -82,17 +82,17 @@
                     <table class="table datanew" id="order-table">
                         <thead>
                             <tr>
-                                <th class="no-sort" >date</th>
-                                <th class="no-sort" >date</th>
-                                <th class="no-sort" >nom</th>
-                                <th class="no-sort" >code</th>
-                                <th class="no-sort" >categorie</th>
-                                <th class="no-sort" >prix</th>
+                                <th class="no-sort">Image</th>
+                                <th class="no-sort">Noms</th>
+                                <th class="no-sort">Famille</th>
+                                <th class="no-sort">Code</th>
+                                <th class="no-sort">Prix</th>
+                                <th class="no-sort">Date</th>
                                 <th class="no-sort"></th>
                             </tr>
                         </thead>
                         <tbody id="product-list">
-<p id="error-message"></p>
+                            <p id="error-message"></p>
 
                             {% include 'partials/product-list.html' %}
                         </tbody>
@@ -105,12 +105,12 @@
 </div>
 
 
-<div class="modal fade" id="add-product">
+<div class="modal modal-xl fade" id="add-product">
     <div class="modal-dialog edit- sales-modal">
         <div class="modal-content">
             <div class="page-wrapper p-0 m-0">
                 <div class="content p-0">
-                    <div class="page-header p-4 mb-0">
+                    <div class="page-header p-4 pb-0 mb-0">
                         <div class="add-item new-sale-items d-flex">
                             <div class="page-title">
                                 <h4>nouveau produit</h4>
@@ -121,69 +121,122 @@
                         </div>
                     </div>
                     <div class="card">
-                        <div class="card-body">
-                            <form action="{% url 'add-product' %}" method="post"
-                            enctype="multipart/form-data">
-                          {% csrf_token %}
-                          
-                          {% if form.errors %}
-                              <div class="alert alert-danger">
-                                  <ul>
-                                      {% for field in form %}
-                                          {% for error in field.errors %}
-                                              <li>{{ field.label }}: {{ error }}</li>
-                                          {% endfor %}
-                                      {% endfor %}
-                                      {% for error in form.non_field_errors %}
-                                          <li>{{ error }}</li>
-                                      {% endfor %}
-                                  </ul>
-                              </div>
-                          {% endif %}
-                          
-                          <div class="mb-3">
-                              {{ form.name.label_tag }}
-                              {{ form.name }}
-                          </div>
+                        <form class="card-body row" action="{% url 'add-product' %}" method="post"     enctype="multipart/form-data">
+                            <div class="col-6">
+                                {% csrf_token %}
+                                {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        {% for field in form %}
+                                        {% for error in field.errors %}
+                                        <li>{{ field.label }}: {{ error }}</li>
+                                        {% endfor %}
+                                        {% endfor %}
+                                        {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
 
-                          <div class="mb-3">
-                            {{ form.size.label_tag }}
-                            {{ form.size }}
-                        </div>
-                      
-                          <div class="mb-3">
-                              {{ form.category.label_tag }}
-                              {{ form.category }}
-                          </div>
-                      
-                          <div class="mb-3">
-                              {{ form.price.label_tag }}
-                              {{ form.price }}
-                          </div>
-                      
-                          <div class="mb-3">
-                              {{ form.image.label_tag }}
-                              {{ form.image }}
-                          </div>
-                      
-                          <div class="mb-3">
-                              {{ form.code.label_tag }}
-                              {{ form.code }}
-                          </div>
-                      
-                          <button type="submit" class="btn btn-primary w-100">Ajouter le produit</button>
-                      </form>
-                      
-                        </div>
+                                <div class="mb-3">
+                                    <label for="name">Noms</label>
+
+                                    <!-- {{ form.name.label_tag }} -->
+                                    {{ form.name }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="size">Taille</label>
+                                    <!-- {{ form.size.label_tag }} -->
+                                    {{ form.size }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <!-- {{ form.category.label_tag }} -->
+                                    <label for="category">Famille</label>
+                                    {{ form.category }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <!-- {{ form.price.label_tag }} -->
+                                    <label for="price">Prix</label>
+                                    {{ form.price }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <!-- {{ form.image.label_tag }} -->
+                                    <label for="image">Image</label>
+                                    {{ form.image }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <!-- {{ form.code.label_tag }} -->
+                                    <label for="code">Code</label>
+                                    {{ form.code }}
+                                </div>
+
+                            </div>
+
+                            <div class="col-6">
+                                <center>
+                                    <h4>Recette</h4>
+                                </center>
+                                <hr>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th> 
+                                    <label for="Ingrédient">Ingrédient</label>
+
+                                            </th>
+                                            <th>
+                                    <label for="Quantité">Quantité</label>
+                                                </th>
+                                            <th>
+                                                
+                                    <label for="Action">Supprimer</label>
+                                                </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ingredient-table-body">
+                                        {% include "partials/ingredient_form.html" %}
+                                    </tbody>
+                                </table>
+
+                                <!-- Bouton pour ajouter une nouvelle ligne -->
+                                <div class="py-3">
+                                    <a href="javascript:void(0);" hx-get="{% url 'add_ingredient_row' %}"
+                                        hx-target="#ingredient-table-body" hx-swap="beforeend" class="text-primary">
+                                        <i data-feather="plus-circle"></i> Ajouter un ingrédient
+                                    </a>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <button type="submit"
+                                        class="btn btn-primary mt-5" style="width:100%;">
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
+
+                    
+                  
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+</div>
+</div>
 
 {% for product in products %}
-<div class="modal fade" id="edit-product-{{product.id}}">
+<div class="modal  modal-xl fade" id="edit-product-{{product.id}}">
     <div class="modal-dialog edit- sales-modal">
         <div class="modal-content">
             <div class="page-wrapper p-0 m-0">
@@ -198,64 +251,145 @@
                             </button>
                         </div>
                     </div>
-                 <div class="card">
-    <div class="card-body">
-        <form hx-post="{% url 'update-product' product.id %}" 
-        hx-swap="innerHTML"
-              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
-              hx-target="#product-list"
-              enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="row">
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <ul>
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <li>{{ field.label }}: {{ error }}</li>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-                <div class="input-blocks">
-                    <div class="mb-3">
-                        <label for="nom">Nom du produit</label>
-                        <input type="text" class="form-control" name="nom" id="nom" required value="{{ product.name }}">
-                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <form hx-post="{% url 'update-product' product.id %}" hx-swap="innerHTML"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#product-list"
+                                enctype="multipart/form-data" class="row">
+                                {% csrf_token %}
+                                <div class="col-6">
+                                    {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            {% for field in form %}
+                                            {% for error in field.errors %}
+                                            <li>{{ field.label }}: {{ error }}</li>
+                                            {% endfor %}
+                                            {% endfor %}
+                                            {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    <div class="input-blocks">
+                                        <div class="mb-3">
+                                            <label for="nom">Noms</label>
+                                            <input type="text" class="form-control" name="nom" id="nom" required
+                                                value="{{ product.name }}">
+                                        </div>
 
-                    <div class="mb-3">
-                        <label for="cat">Catégorie du produit</label>
-                        <select name="cat" id="cat" class="form-control select2-selection__rendered" required>
-                            {% for cat in category %}
-                                <option value="{{ cat.id }}" {% if product.category.id == cat.id %} selected {% endif %}>
-                                    {{ cat.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="prix">Prix du produit</label>
-                        <input type="text" name="prix" id="prix" class="form-control" required value="{{ product.price }}">
-                    </div>
+                                        <div class="mb-3">
+                                            <label for="size">Taille</label>
+                                            <input type="text" class="form-control" name="size" id="size" required
+                                                value="{{ product.size }}">
+                                        </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Changer le produit</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
+
+                                        <div class="mb-3">
+                                            <label for="cat">Famille</label>
+                                            <select name="cat" id="cat" class="form-control select" required>
+                                                {% for cat in category %}
+                                                <option value="{{ cat.id }}" {% if product.category.id == cat.id %}
+                                                    selected {% endif %}>
+                                                    {{ cat.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="prix">Prix</label>
+                                            <input type="text" name="prix" id="prix" class="form-control" required
+                                                value="{{ product.price.amount }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <!-- {{ form.image.label_tag }} -->
+                                            <label for="image">Image</label>
+                                            <input type="file" name="image" id="image" class="form-control"
+                                                value="{{ product.image.url }}">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="code">Code </label>
+                                            <input type="text" name="code" id="code" class="form-control" required
+                                                value="{{ product.code }}">
+                                        </div>
+
+
+                                        <button type="submit" class="btn btn-primary w-100">Changer le produit</button>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <center>
+                                        <h4>Recette</h4>
+                                    </center>
+                                    <hr>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th> 
+                                        <label for="Ingrédient">Ingrédient</label>
+    
+                                                </th>
+                                                <th>
+                                        <label for="Quantité">Quantité</label>
+                                                    </th>
+                                                <th>
+                                                    
+                                        <label for="Action">Supprimer</label>
+                                                    </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ingredient-table-body">
+                                            {% for pro_indredient in product.ingredients.all  %}
+                                            <tr>
+                                                <td>
+                                                    <select name="ingredient[]" class="form-control select">
+                                                        {% for ingredient2 in ingredients %}
+                                                        <option value="{{ ingredient2.id }}" {% if ingredient2.id == pro_indredient.ingredient.id %}
+                                                          selected
+                                                        {% endif %} required>{{ ingredient2.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td class="row">
+<div class="col-8"> <input type="number" class="form-control" value="{{pro_indredient.quantity_required}}" required name="quantity_required[]"></div> <center class="col-4">
+    {{pro_indredient.ingredient.unit}}
+</center>
+                                                </td>
+                                                <td>
+                                                    <a href="javascript:void(0);" class="text-danger" onclick="this.closest('tr').remove();">
+                                                        <i class="fa fa-times"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            
+                                            {% endfor %}
+                                            {% include "partials/ingredient_form.html" %}
+                                        </tbody>
+                                    </table>
+    
+                                    <!-- Bouton pour ajouter une nouvelle ligne -->
+                                    <div class="py-3">
+                                        <a href="javascript:void(0);" hx-get="{% url 'add_ingredient_row' %}"
+                                            hx-target="#ingredient-table-body" hx-swap="beforeend" class="text-primary">
+                                            <i data-feather="plus-circle"></i> Ajouter un ingrédient
+                                        </a>
+                                    </div>
+    
+                                </div>
+                               
+                            </form>
+                        </div>
+                    </div>
 
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 {% endfor %}
 
 

@@ -5,9 +5,9 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from crm.models import Fournisseur
 from pos.models import Caisse
-from pos.forms import CategoryForm, ProductForm
+from pos.forms import CategoryForm, IngredientForm, ProductForm
 from pos.models  import Category, Product
-from .models import Order
+from .models import Ingredient, Order, ProductIngredient, StockMovement
 from django.utils import timezone
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
@@ -108,27 +108,118 @@ def delete_order(request, order_id):
         
 
 
+def add_ingredient_form(request):
+    ingredients = Ingredient.objects.all()  # Récupérer les ingrédients disponibles
+    return render(request, "partials/ingredient_form.html", {"ingredients": ingredients})
+
+
 def ProductList(request):
     products = Product.objects.all()
     category = Category.objects.all()
     form = ProductForm()
+    ingredients = Ingredient.objects.all()
     context = {
+        'ingredients':ingredients,
         'products':products,
         'category':category,
         'form':form,
     }
     return render(request, 'pages/product-list.html',context)
 
+def IngredientsList(request):
+    products = Ingredient.objects.all()
+    fournisseurs = Fournisseur.objects.filter(disponible=True)
+    form = IngredientForm()
+    context = {
+        'products':products,
+        'form':form,
+        'fournisseurs':fournisseurs
+    }
+    return render(request, 'pages/ingredient-list.html',context)
+
+
+def ingredient_create(request):
+    if request.method == "POST":
+        form = IngredientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ingredients-list')
+    else:
+        form = IngredientForm()
+    return redirect('ingredients-list', {'form': form})
+
+def ingredient_update(request, pk):
+    ingredient = get_object_or_404(Ingredient, pk=pk)
+
+    if request.method == "POST":
+        name = request.POST.get("name")
+        price = request.POST.get("price")
+        quantity = request.POST.get("quantity")
+        unit = request.POST.get("unit")
+
+        # Mettre à jour l'objet Ingredient
+        ingredient.name = name
+        ingredient.price.amount = price  # Assurez-vous que price est bien un MoneyField
+        ingredient.quantity = quantity
+        ingredient.unit = unit
+
+        ingredient.save()
+        return redirect('ingredients-list')
+    return redirect('ingredients-list')
+
+def ingredient_delete(request, pk):
+    ingredient = get_object_or_404(Ingredient, pk=pk)
+    ingredient.delete()
+        
+    return redirect('ingredients-list')
+
 
 def add_product(request):
     if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect ("products-list")
-        else:
-            return redirect('products-list')
-    return JsonResponse({"error": "Invalid method"})
+        try:
+            form = ProductForm(request.POST, request.FILES)
+            ingredient_ids = request.POST.getlist("ingredient[]")
+            quantities = request.POST.getlist("quantity_required[]")
+
+            if form.is_valid():
+                product = form.save()  # Sauvegarde du produit
+                
+                for ingredient_id, quantity in zip(ingredient_ids, quantities):
+                    try:
+                        ingredient = Ingredient.objects.get(id=ingredient_id)
+                        quantity = float(quantity)
+
+                        # Création de la relation produit-ingrédient
+                        ProductIngredient.objects.create(
+                            product=product,
+                            ingredient=ingredient,
+                            quantity_required=quantity,
+                            unit=ingredient.unit
+                        )
+                    except Ingredient.DoesNotExist:
+                        messages.error(request, f"L'ingrédient avec l'ID {ingredient_id} n'existe pas.")
+                        return redirect("add-product")
+
+                messages.success(request, "Produit ajouté avec succès !")
+                return redirect("products-list")
+
+            else:
+                messages.error(request, "Veuillez corriger les erreurs du formulaire.")
+        
+        except Exception as e:
+            messages.error(request, f"Une erreur s'est produite : {str(e)}")
+
+        return redirect("add-product")
+
+    else:
+        try:
+            form = ProductForm()
+            ingredients = Ingredient.objects.all()
+            return redirect("products-list")
+
+        except Exception as e:
+            messages.error(request, f"Erreur lors du chargement du formulaire : {str(e)}")
+            return redirect("products-list")
 
 def update_product(request, id):
     product = get_object_or_404(Product, id=id)
@@ -136,9 +227,17 @@ def update_product(request, id):
         nom = request.POST.get('nom')
         categorie_id = request.POST.get('cat')
         prix = request.POST.get('prix')
+        code = request.POST.get('code')
+        image = request.FILES.get('image')
+        size = request.POST.get('size')
         
         category = get_object_or_404(Category, id=categorie_id)
+        if image: 
+            product.image = image
+            
         product.name = nom
+        product.code = code
+        product.size = size
         product.category = category
         product.price = prix
         product.save()
@@ -158,8 +257,6 @@ def delete_product(request, id):
         return redirect("products-list")
     return HttpResponse(status=405)
 
-
-
 def CategoryList(request):
     categories = Category.objects.all()
     form = CategoryForm()
@@ -168,7 +265,6 @@ def CategoryList(request):
         'form':form,
     }
     return render(request, 'pages/category-list.html',context)
-
 
 def add_Category(request):
     if request.method == 'POST':
@@ -187,9 +283,10 @@ def update_Category(request, id):
     if request.method == 'POST':
         nom = request.POST.get('nom')
         image = request.FILES.get('image')
-        
-        category.name = nom
-        category.image = image
+        if nom:
+            category.name = nom
+        if image : 
+            category.image = image
         category.save()
         categories = Category.objects.all()
         return render(request, "partials/category-list.html", {"categories": categories})
@@ -199,7 +296,7 @@ def update_Category(request, id):
 @csrf_exempt
 def delete_Category(request, id):
     category = get_object_or_404(Category, id=id)
-    categories = Product.objects.all()
+    categories = Category.objects.all()
     if request.method == "DELETE":  # Accepter DELETE ici
         category.delete()
         if request.headers.get("HX-Request"):
@@ -207,32 +304,38 @@ def delete_Category(request, id):
         return redirect("category-list")
     return HttpResponse(status=405)
 
-# def reaprovisionnement(request,id):
-#     produit = get_object_or_404(Product, id=id)
+def reaprovisionnement(request,id):
     
-#     if request.method == 'POST':
-#         form = ReapprovisionnementForm(request.POST)
+    if request.method == 'POST':
+        quantity = request.POST.get('quantity')
+        price = request.POST.get('price')
+        amount_paid = request.POST.get('amount_paid')
+        fournisseur_id = request.POST.get('fournisseur_id')
+        description = request.POST.get('description')
+        decaissement = request.POST.get('decaissement', 'oui') == 'oui'
+
+        if decaissement :
+            decaissement = True
+        else:
+            decaissement = False
+
+        ingredient = Ingredient.objects.get(id=id)
+        ingredient.quantity = ingredient.quantity + float(quantity)
+        ingredient.save()
         
-#         if form.is_valid():
-#             reapprovisionnement = form.save(commit=False)
-#             reapprovisionnement.produit = produit  # Assignation du produit
-#             reapprovisionnement.save()
+        StockMovement.objects.create(
+            ingredient = ingredient,
+            quantity=quantity,
+            unit_price=int(price),
+            amount_paid=amount_paid,
+            fournisseur= Fournisseur.objects.get(id=fournisseur_id),
+            description=description,
+            decaisement=decaissement,
+            type_de_mouvement = 'Entrée'
+        )
 
-#             # Réajuster le prix du produit
-#             if produit.stock_initial_initial > 0:
-#                 produit.prix_de_vente = (produit.prix_de_vente * produit.stock_initial_initial + reapprovisionnement.prix_de_vente * reapprovisionnement.quantite) / (produit.stock_initial + reapprovisionnement.quantite)
-#             else:
-#                 produit.prix_de_vente = reapprovisionnement.prix_de_vente # Si c'est le premier réapprovisionnement
-
-#             produit.quantite_stock_initial += int(reapprovisionnement.quantite)  # Augmenter la quantité de stock_initial
-#             produit.save()
-
-#             return redirect('reaprovisionnement', id=produit.id) 
-#     else:
-#         form = ReapprovisionnementForm()
-#     return render(request, 'pages/reaprovisionnement.html')
-
-
+    messages.success(request, "Réapprovisionnement fait avec succès.")
+    return redirect('ingredients-list')
 
 def reaprovisionnementList(request):
     fournisseurs = Fournisseur.objects.all()  # Récupérer tous les fournisseurs
@@ -319,16 +422,13 @@ def create_reapprovisionnement(request):
         print(f"Erreur : {e}")
         messages.error(request, "Une erreur est survenue. Merci de réessayer.")
         return redirect('reaprovisionnementList')
-    
-    
+     
 def add_item_form(request):
     """
     Vue pour retourner le formulaire d'un nouvel item de réapprovisionnement.
     """
     form = ReapprovisionnementItemForm()
     return render(request, 'partials/reapprovisionnement_item_form.html', {'form': form})
-
-
 
 def refresh_order(request):
     """Recharge les éléments de la commande pour le serveur actuel."""
@@ -400,7 +500,6 @@ def save_order(request, order_id):
     """Enregistre et valide une commande."""
     current_order = get_object_or_404(Order, id=order_id)
     caisse, created = Caisse.objects.get_or_create(user = request.user)
-
     if request.method == "POST":
         try:
             montant_paye = Decimal(request.POST.get("somme_payer", 0) or 0)
@@ -413,7 +512,7 @@ def save_order(request, order_id):
                 
             current_order.status = "Validé"
             current_order.save()
-            
+        
             if request.headers.get("HX-Request"):
                 return render(request, "partials/order_items.html", {"order": {}})
             return redirect("vendor-dashboard")
@@ -687,7 +786,7 @@ def increment_order_item(request, item_id):
         order_item.save(update_fields=["quantity"])
 
         # Calcul du coût supplémentaire et mise à jour de la dette
-        item_price = order_item.custom_product_price  # Supposons que chaque `OrderItem` a un attribut `price`
+        item_price = order_item.product.price.amount  # Supposons que chaque `OrderItem` a un attribut `price`
         additional_cost = item_price * (order_item.quantity - previous_quantity)
         client.dette += additional_cost
         client.save(update_fields=["dette"])
@@ -726,7 +825,7 @@ def decrement_order_item(request, item_id):
         order_item.save(update_fields=["quantity"])
 
         # Calcul du coût réduit et mise à jour de la dette
-        item_price = order_item.custom_product_price # Assumant que chaque `OrderItem` a un attribut `price`
+        item_price = order_item.product.price.amount  # Assumant que chaque `OrderItem` a un attribut `price`
         reduction_cost = item_price * (previous_quantity - order_item.quantity)
         client.dette -= reduction_cost
         client.save(update_fields=["dette"])
@@ -764,7 +863,7 @@ def delete_order_item(request, item_id):
 
         # Mettre à jour la dette du client avant la suppression
         client = order.client
-        item_price = order_item.custom_product_price  # Récupérer le prix de l'article
+        item_price = order_item.product.price.amount  # Récupérer le prix de l'article
         total_item_cost = item_price * order_item.quantity  # Coût total de l'élément à supprimer
         client.dette -= total_item_cost  # Soustraire le coût de la dette
         client.save(update_fields=["dette"])  # Sauvegarder les modifications

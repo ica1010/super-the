@@ -12,7 +12,7 @@
                     <!-- <h5>Categories</h5> -->
                     <div class="pos-products">
                         <div class="row mt-5">
-                            {% for product in products %}
+                            {% for product in ingredients %}
                             <div class="col-sm-3 col-md-6 col-lg-3 col-xl-3">
                                 <form hx-post="{% url 'add_product_to_reapo' %}" hx-target="#achat-items" method="post">
                                     {% csrf_token %}
@@ -20,10 +20,6 @@
                                     <input type="hidden" name="qty"  value=1 >
                                     <button style="display: none;" id="stock_product_btn-{{ product.id }}" ></button>
                                 <div class="product-info default-cover card" onclick="document.getElementById('stock_product_btn-{{ product.id }}').click()">
-                                    <a href="javascript:void(0);" class="img-bg">
-                                        <img src="{{product.category.image.url}}" alt="Products"
-                                            style="transform: scale(1);    height: 100%;">
-                                    </a>
                                     <h6 class="cat-name mt-3"><a href="javascript:void(0);">{{product.category.name}} - {{product.name}} <br>Quantitté : {{product.stock_actuel}} en stock</a></h6>
                                 </div>
                             </form>

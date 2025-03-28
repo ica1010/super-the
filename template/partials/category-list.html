@@ -11,9 +11,7 @@
             <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-category-{{category.id}}">
                 <i data-feather="edit" class="feather-edit"></i>
             </a>
-            <a class="me-2 edit-icon  p-2" href="">
-                <i data-feather="eye" class="feather-eye"></i>
-            </a>
+        
             <a hx-delete="{% url 'delete-category' category.id %}" 
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-target="#category-{{ category.id }}" 

@@ -2,9 +2,9 @@
 {% for order in orders %}
 <tr data-date="{{ order.add_at|date:'Y-m-d' }}">
     <td>#{{order.id}} </td>
+    <td>{{order.get_total}}</td>
+    <td class="text-center">{{order.add_at|date:'d M Y , h:i'}}</td>
     <td>{{order.server}}</td>
-    <td>{{order.add_at|date:'d M Y , h:i'}}</td>
-    <td>{{order.get_total}} Franc Cfa</td>
     <!-- <td><span class="badge {% if order.status == 'En cours' %}
         bg-outline-warning
         {% else %}
@@ -16,9 +16,12 @@
         badge-linesuccess
         {% endif %}">{{order.status_de_paiement}}</span></td>
     <td> -->
+        <td class="text-center">
             <a class="p-2" data-bs-toggle="modal" data-bs-target=".print-receipt-{{order.id}}">
                 Voir le recu
             </a>
+        </td>
+            
     </td>
     <td class="action-table-data">
         <div class="edit-delete-action">

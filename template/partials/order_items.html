@@ -329,40 +329,7 @@
                             </table>
                         </div>
 
-                        <div class="d-none">
-                            {% for item in order.items.all %}
-                            {% for i in item.quantity|times %}
-                            <div class="card" style="display: flex;justify-content:center;"
-                                id="autocollant-{{ item.id }}">
-                                <center>
-                                    <h3>
-                                        {{ order.id }}
-
-                                    </h3>
-                                </center>
-                                <br>
-                                <div style="display: flex;justify-content:center; gap: 10px">
-                                    <center>
-                                        <p style="width: 100%;"> {{ item.size.product.code }} </p>
-                                    </center>
-                                    <center>
-                                        <p> {{ item.size.size }} </p>
-                                    </center>
-                                </div>
-
-                                <center>
-
-                                    <p style="text-align: center; margin-top:20px">
-                                        {{ forloop.counter }} - {{ order.items.count }}
-                                    </p>
-                                </center>
-
-                            </div>
-
-                            {% endfor %}
-                            {% endfor %}
-
-                        </div>
+                       
                         <div class="row" style="text-align: end;">
                             <h1>
                                 Merci beaucoup !
@@ -385,6 +352,33 @@
         </div>
     </div>
 
+
+    <div class="d-none">
+        {% for item in order.items.all %}
+            {% for i in item.quantity|times %}
+                <div class="" id="autocollant-{{ item.id }}" style="justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">
+                    <div class="row"> 
+                      <center>  <h1 style="margin: 0;width: 100%;">{{ order.id }}</h1></center>
+                    </div>
+                    <div  style="display: flex; justify-content: center; gap: 10px;">
+                        <center>
+                            <p style="margin: 5px 0; text-align: center;font-size:medium">{{ item.size.product.code }}</p>
+                        </center>
+                        <center>
+                            <p style="margin: 5px 0; text-align: center; font-size:medium">{{ item.size.size }}</p>
+                        </center>
+                    </div>
+                    <br><br><br>
+                    <div class="row">
+                      <center>
+                        <p style="margin: 5px 0; text-align: center;font-size:medium">{{ forloop.counter }} - {{ order.items.count }}</p>
+                      </center>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+    
     {% endif %}
 
 

@@ -89,7 +89,7 @@
                         </a>
                         <div class="info">
                             <span>{{ item.size.product.code }}</span>
-                            <h6><a href="javascript:void(0);">{{ item.custom_product_name  }}</a></h6>
+                            <h6><a href="javascript:void(0);">{{ item.custom_product_name  }}({{ item.size.size }}) </a></h6>
                             <p>{{ item.size.price }} </p>
                         </div>
                     </div>
@@ -303,7 +303,7 @@
                             <tbody>
                                 {% for item in order.items.all %}
                                 <tr>
-                                    <td>{{item.custom_product_name}}</td>
+                                    <td>{{item.custom_product_name}} ({{ item.size.size }})  </td>
                                     <td>{{item.size.price.amount}}</td>
                                     <td><center>{{item.quantity}}</center></td>
                                     <td class="text-end"> {{ item.get_total}}</td>
@@ -353,7 +353,7 @@
     </div>
 
 
-    <div class="d-none">
+    <div class="d-block">
         {% for item in order.items.all %}
             {% for i in item.quantity|times %}
                 <div class="" id="autocollant-{{ item.id }}" style="justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">

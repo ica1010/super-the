@@ -145,8 +145,8 @@
                             {% for item in order.items.all %}
                             <tr>
                                 <td>{{item.custom_product_name}}</td>
-                                <td>{{item.product.price.amount}}</td>
-                                <td>{{item.quantity}}</td>
+                                <td>{{item.size.price.amount}}</td>
+                                <td style="text-align: center;"><center>{{item.quantity}}</center></td>
                                 <td class="text-end"> {{ item.get_total}}</td>
                             </tr>
                             {% endfor %}

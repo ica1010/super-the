@@ -175,10 +175,10 @@
                         {% for item in order.items.all %}
                             {% for i in item.quantity|times %}
                                 <div class="card" id="autocollant-{{ item.id }}" style="display: flex; justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">
-                                    <center>
-                                        <h3 style="margin: 0; font-size: 1.5em;">{{ order.id }}</h3>
-                                    </center><br><br>
-                                    <div style="display: flex; justify-content: center; gap: 10px;">
+                                    <div class="row"> 
+                                      <center>  <h3 style="margin: 0; font-size: 1.5em; width: 100%;">{{ order.id }}</h3></center>
+                                    </div>
+                                    <div  style="display: flex; justify-content: center; gap: 10px;">
                                         <center>
                                             <p style="margin: 5px 0; text-align: center;">{{ item.size.product.code }}</p>
                                         </center>
@@ -187,9 +187,11 @@
                                         </center>
                                     </div>
                                     <br><br><br>
-                                    <center>
+                                    <div class="row">
+                                      <center>
                                         <p style="margin: 5px 0; text-align: center;">{{ forloop.counter }} - {{ order.items.count }}</p>
-                                    </center>
+                                      </center>
+                                    </div>
                                 </div>
                             {% endfor %}
                         {% endfor %}

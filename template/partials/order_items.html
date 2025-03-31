@@ -186,7 +186,7 @@
                 <div class="col-12">
                     <form class="input-block" hx-post="{% url 'update_payment' order.id %}" hx-target="#order-items"
                         method="post">
-                        <label>Montant Remise</label>
+                        <label>Montant Remis</label>
                         <div class="row">
                             <div class="col-10">
                                 <input type="number" value="{{ order.get_total }}" class="form-control"
@@ -219,7 +219,7 @@
                     <td class="text-end">{{order.montant_remise}} </td>
                 </tr>
                 <tr>
-                    <td>Relicat</td>
+                    <td>reliquat</td>
                     <td class="text-end"> {{order.relicat}} </td>
                 </tr>
             </table>

@@ -295,17 +295,17 @@
                             <thead>
                                 <tr>
                                     <th>Nom</th>
-                                    <th>Prix</th>
-                                    <th>Quantité</th>
-                                    <th class="text-end">Montant</th>
+                                    <th style="width: fit-content;" >Prix</th>
+                                    <th style="width: fit-content;"><center>Quantité</center></th>
+                                    <th style="width: fit-content;" class="text-end">Montant</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in order.items.all %}
                                 <tr>
                                     <td>{{item.custom_product_name}}</td>
-                                    <td>{{item.product.price.amount}}</td>
-                                    <td>{{item.quantity}}</td>
+                                    <td>{{item.size.price.amount}}</td>
+                                    <td><center>{{item.quantity}}</center></td>
                                     <td class="text-end"> {{ item.get_total}}</td>
                                 </tr>
                                 {% endfor %}
@@ -319,11 +319,11 @@
                                     <td class="text-end">{{order.get_total}}</td>
                                 </tr>
                                 <tr>
-                                    <td>Montant Remise</td>
+                                    <td>Montant Remis</td>
                                     <td class="text-end">{{order.montant_remise}}</td>
                                 </tr>
                                 <tr>
-                                    <td>Relicat</td>
+                                    <td>reliquat</td>
                                     <td class="text-end">{{order.relicat}}</td>
                                 </tr>
                             </table>

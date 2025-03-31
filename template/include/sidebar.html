@@ -30,10 +30,9 @@
                         <li class="{% if request.path == '/pos/list-des-produits' %}active{% endif %}"><a
                                 href="{% url 'products-list' %}"><i
                                     data-feather="plus-square"></i><span>Produits</span></a></li>
-                        <li class="{% if request.path == '/pos/list-des-ingredients' %}active{% endif %}"><a
-                                href="{% url 'ingredients-list' %}"><i data-feather="plus-square"></i><span>
-                                    Ingrédients</span></a></li>
-                        <li class="{% if request.path == '/pos/achat/' %}active{% endif %}" ><a href="{% url 'achat' %}"><i data-feather="archive"></i><span>Réaprovisionement</span></a></li>
+                 
+                                    <li class="{% if request.path == '/pos/achat/' %}active{% endif %}" ><a href="{% url 'depense' %}"><i data-feather="archive"></i><span>Depenses</span></a></li> 
+                                    <li class="{% if request.path == '/pos/achat/' %}active{% endif %}" ><a href="{% url 'depense' %}"><i data-feather="dollar-sign"></i><span>SMT</span></a></li> 
 
                     </ul>
                 </li>
@@ -55,7 +54,7 @@
                     </ul>
                 </li>
 
-                <li class="submenu-open">
+                <!-- <li class="submenu-open">
                     <h6 class="submenu-hdr">Comptabilité</h6>
 
                     <ul>
@@ -95,15 +94,14 @@
 
                         </li>
                     </ul>
-                </li>
-                 <li class="submenu-open">
+                </li> -->
+                 <!-- <li class="submenu-open">
                     <h6 class="submenu-hdr">Paramètres et Configuration</h6>
                     <ul>
                         <li><a href="customers.html"><i data-feather="settings"></i><span>Paramètres Généraux</span></a></li>
-                        <!-- <li><a href="customers.html"><i data-feather="user"></i><span>Gestion des Utilisateurs</span></a></li> -->
                      
                     </ul>
-                </li>
+                </li> -->
             </ul>
         </div>
     </div>

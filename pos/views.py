@@ -5,9 +5,9 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from crm.models import Fournisseur
 from pos.models import Caisse
-from pos.forms import CategoryForm, IngredientForm, ProductForm
+from pos.forms import CategoryForm, DepenseAddForm, DepenseDeleteForm, DepenseUpdateForm, IngredientForm, ProductForm
 from pos.models  import Category, Product
-from .models import Ingredient, Order, ProductIngredient, StockMovement
+from .models import Depense, Ingredient, Order, ProductIngredient, StockMovement, productSize
 from django.utils import timezone
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
@@ -23,7 +23,7 @@ from django.contrib import messages
 
 # Create your views here.
 def OrdersList(request):
-    orders = Order.objects.prefetch_related('items__product').filter(delete = False)
+    orders = Order.objects.all()
     
     context ={
         'orders':orders
@@ -50,7 +50,7 @@ def ReturnedOrdersList(request):
     return render(request, 'pages/return-orders-list.html',context)
 
 def OrderDetail(request, id):
-    order = Order.objects.prefetch_related('items__product').get(id=id)
+    order = Order.objects.prefetch_related('items__size').get(id=id)
     
     context ={
         'order':order
@@ -173,31 +173,26 @@ def ingredient_delete(request, pk):
         
     return redirect('ingredients-list')
 
-
 def add_product(request):
     if request.method == 'POST':
         try:
             form = ProductForm(request.POST, request.FILES)
-            ingredient_ids = request.POST.getlist("ingredient[]")
-            quantities = request.POST.getlist("quantity_required[]")
+            sizes = request.POST.getlist("sizes[]")
+            prices = request.POST.getlist("prices[]")
 
             if form.is_valid():
                 product = form.save()  # Sauvegarde du produit
                 
-                for ingredient_id, quantity in zip(ingredient_ids, quantities):
+                for size, price in zip(sizes, prices):
                     try:
-                        ingredient = Ingredient.objects.get(id=ingredient_id)
-                        quantity = float(quantity)
-
                         # Création de la relation produit-ingrédient
-                        ProductIngredient.objects.create(
+                        productSize.objects.create(
                             product=product,
-                            ingredient=ingredient,
-                            quantity_required=quantity,
-                            unit=ingredient.unit
+                            size=size,
+                            price=price
                         )
-                    except Ingredient.DoesNotExist:
-                        messages.error(request, f"L'ingrédient avec l'ID {ingredient_id} n'existe pas.")
+                    except Exception as e:
+                        messages.error(request, f"erreur :{e}")
                         return redirect("add-product")
 
                 messages.success(request, "Produit ajouté avec succès !")
@@ -226,10 +221,10 @@ def update_product(request, id):
     if request.method == 'POST':
         nom = request.POST.get('nom')
         categorie_id = request.POST.get('cat')
-        prix = request.POST.get('prix')
         code = request.POST.get('code')
         image = request.FILES.get('image')
-        size = request.POST.get('size')
+        sizes = request.POST.getlist("sizes[]")
+        prices = request.POST.getlist("prices[]")
         
         category = get_object_or_404(Category, id=categorie_id)
         if image: 
@@ -237,10 +232,25 @@ def update_product(request, id):
             
         product.name = nom
         product.code = code
-        product.size = size
         product.category = category
-        product.price = prix
         product.save()
+        
+        productSize.objects.filter(product=product).delete()
+        for size, price in zip(sizes, prices):
+                try:
+                    productSize.objects.create(
+                        product=product,
+                        size=size,
+                        price=price
+                    )
+                except Exception as e:
+                    print(f"Erreur lors de la mise à jour des tailles : {e}")
+                    messages.error(request, f"Erreur lors de la mise à jour des tailles : {e}")
+                    return redirect("update-product", id=id)
+            
+        
+        
+        
         products = Product.objects.all()
         return render(request, "partials/product-list.html", {"products": products})
    
@@ -613,13 +623,13 @@ def add_product_to_order(request):
     clients = Client.objects.filter(disponible=True)
 
     if request.method == "POST":
-        product = get_object_or_404(Product, id=request.POST.get("product_id"))
-        order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
+        product = get_object_or_404(productSize, id=request.POST.get("product_id"))
+        order_item, created = OrderItem.objects.get_or_create(order=order, size=product)
 
         order_item.quantity = order_item.quantity + 1 if not created else 1
         order_item.save()
 
-        order.montant_restant = order.get_total()
+       
         
         order.save()
 
@@ -691,7 +701,6 @@ def choose_customer(request, id):
             # Réduit la dette de l'ancien client si un client était déjà assigné
             if current_order.client:
                 old_client = current_order.client
-                old_client.dette -= current_order.montant_restant
                 old_client.save(update_fields=["dette"])
 
             # Assigne le nouveau client à la commande
@@ -700,7 +709,6 @@ def choose_customer(request, id):
             current_order.save(update_fields=["client", "status"])
 
             # Incrémente la dette du nouveau client
-            new_client.dette += current_order.montant_restant
             new_client.save(update_fields=["dette"])
 
         # Réponse partielle si c'est une requête HTMX, sinon redirection
@@ -733,7 +741,7 @@ def update_payment(request, order_id):
 
     if request.method == "POST":
         try:
-            montant_paye = Decimal(request.POST.get("somme_payer", 0) or 0)
+            montant_paye = Decimal(request.POST.get("montant_remise", 0) or 0)
             if montant_paye > 0:
                 current_order.register_partial_payment(montant_paye)
                 current_order.save()
@@ -786,7 +794,7 @@ def increment_order_item(request, item_id):
         order_item.save(update_fields=["quantity"])
 
         # Calcul du coût supplémentaire et mise à jour de la dette
-        item_price = order_item.product.price.amount  # Supposons que chaque `OrderItem` a un attribut `price`
+        item_price = order_item.size.price.amount  # Supposons que chaque `OrderItem` a un attribut `price`
         additional_cost = item_price * (order_item.quantity - previous_quantity)
         client.dette += additional_cost
         client.save(update_fields=["dette"])
@@ -825,7 +833,7 @@ def decrement_order_item(request, item_id):
         order_item.save(update_fields=["quantity"])
 
         # Calcul du coût réduit et mise à jour de la dette
-        item_price = order_item.product.price.amount  # Assumant que chaque `OrderItem` a un attribut `price`
+        item_price = order_item.size.price.amount  # Assumant que chaque `OrderItem` a un attribut `price`
         reduction_cost = item_price * (previous_quantity - order_item.quantity)
         client.dette -= reduction_cost
         client.save(update_fields=["dette"])
@@ -863,7 +871,7 @@ def delete_order_item(request, item_id):
 
         # Mettre à jour la dette du client avant la suppression
         client = order.client
-        item_price = order_item.product.price.amount  # Récupérer le prix de l'article
+        item_price = order_item.size.price.amount  # Récupérer le prix de l'article
         total_item_cost = item_price * order_item.quantity  # Coût total de l'élément à supprimer
         client.dette -= total_item_cost  # Soustraire le coût de la dette
         client.save(update_fields=["dette"])  # Sauvegarder les modifications
@@ -872,8 +880,7 @@ def delete_order_item(request, item_id):
         order_item.delete()
 
         # Recalculer le montant restant de la commande
-        order.montant_restant = order.get_total()
-        order.save(update_fields=["montant_restant"])  # Sauvegarder les modifications
+        order.save()  # Sauvegarder les modifications
 
         # Réponse partielle avec HTMX
         if request.headers.get("HX-Request"):
@@ -980,3 +987,58 @@ def creer_fournisseur(request):
 
     return JsonResponse({"error": "Méthode non autorisée."}, status=405)
 
+
+
+def cash_expense(request):
+    depenses = Depense.objects.filter(delete = False)
+    add_form = DepenseAddForm()  # Formulaire d'ajout
+    update_form = DepenseUpdateForm()  # Formulaire de modification (vide par défaut)
+    delete_form = DepenseDeleteForm()  # Formulaire de suppression
+
+    context = {
+        'depenses': depenses,
+        'add_form': add_form,
+        'update_form': update_form,
+        'delete_form': delete_form,
+    }
+    return render(request, 'pages/depense.html' ,context )
+
+
+def add_expense(request):
+    if request.method == 'POST':
+        form = DepenseAddForm(request.POST, request.FILES)
+        try:
+            form.save()
+            messages.success(request, "Dépense ajoutée avec succès !")
+        except Exception as e:
+            messages.error(request, f"Erreur {e}")
+    return redirect('depense')
+
+
+def update_expense(request, id):
+    depense = get_object_or_404(Depense, id=id)
+    
+    if request.method == 'POST':
+        form = DepenseUpdateForm(request.POST, request.FILES, instance=depense)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Dépense mise à jour avec succès !")
+        else:
+            messages.error(request, "Erreur lors de la modification de la dépense.")
+    
+    return redirect('depense')
+
+
+def delete_expense(request, id):
+    depense = get_object_or_404(Depense, id=id)
+    
+    if request.method == 'POST':
+        form = DepenseDeleteForm(request.POST)
+        if form.is_valid() and form.cleaned_data['confirm']:
+            depense.delete = True
+            depense.save()
+            messages.success(request, "Dépense supprimée avec succès !")
+        else:
+            messages.error(request, "Veuillez cocher la case pour confirmer la suppression.")
+
+    return redirect('depense')

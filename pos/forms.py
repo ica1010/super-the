@@ -3,28 +3,21 @@ from pos.models import  OrderItem
 from pos.models  import Category, Product
 from django import forms
 from djmoney.forms.fields import MoneyField
-from .models import Ingredient, Product
+from .models import Depense, Ingredient, Product
 
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'size','image', 'code', 'category', 'price']
+        fields = ['name','image', 'code', 'category']
 
-    price = MoneyField(
-        decimal_places=0,
-        max_digits=14,
-        default_currency='XOF'
-    )
-
+ 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Ajout de classes Bootstrap pour le style
         self.fields['name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Nom du produit'})
-        self.fields['size'].widget.attrs.update({'class': 'form-control', 'placeholder': 'taille'})
         self.fields['image'].widget.attrs.update({'class': 'form-control'})
         self.fields['code'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Code produit'})
         self.fields['category'].widget.attrs.update({'class': 'form-control'})
-        self.fields['price'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Prix'})
 
     def clean_code(self):
         code = self.cleaned_data.get('code')
@@ -80,3 +73,47 @@ class IngredientForm(forms.ModelForm):
         self.fields['price'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Prix'})
         self.fields['quantity'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Quantité'})
         self.fields['unit'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Unité'})  
+        
+        
+        
+
+# Formulaire pour l'ajout d'une dépense
+class DepenseAddForm(forms.ModelForm):
+    class Meta:
+        model = Depense
+        # On n'inclut pas le champ "date" (auto_now_add) et "delete" (pour la suppression)
+        fields = ['name', 'note', 'justification', 'amount', 'in_cash']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'justification': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'in_cash': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+# Formulaire pour la modification d'une dépense
+class DepenseUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Depense
+        # Même champs que pour l'ajout ; la date ne se modifie pas et la suppression est gérée à part
+        fields = ['name', 'note', 'justification', 'amount', 'in_cash']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'justification': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'in_cash': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+# Formulaire pour confirmer la suppression d'une dépense
+class DepenseDeleteForm(forms.ModelForm):
+    confirm = forms.BooleanField(
+        required=True,
+        label="Confirmer la suppression",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = Depense
+        # Aucun champ du modèle n'est modifié ici ; seul le champ de confirmation est utilisé
+        fields = []

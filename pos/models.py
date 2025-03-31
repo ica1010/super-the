@@ -28,13 +28,8 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='category', default='img.jpeg')
     code = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    size = models.CharField(max_length=100,blank=True, null=True, default='Grand')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
-    price = MoneyField(
-        max_digits=14, 
-        decimal_places=0, 
-        default_currency='XOF'
-    )
+    
     
     add_at = models.DateField(auto_created=True, auto_now_add=True)
     update_at = models.DateField(auto_now=True)
@@ -43,6 +38,18 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+
+class productSize(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sizes')
+    size = models.CharField(max_length=100,blank=True, null=True, default='Grand')
+    price = MoneyField(
+        max_digits=14, 
+        decimal_places=0, 
+        default_currency='XOF'
+    )
+
+    def __str__(self):
+        return f"{self.product.name} : {self.size} - {self.price}"
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=100)
@@ -138,8 +145,8 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='En cours')
     status_de_paiement = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='non soldée')
-    montant_restant = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-    montant_paye = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    relicat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    montant_remise = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status_de_payement = models.CharField(max_length=50, blank=True)
     validated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
     add_at = models.DateTimeField(auto_now_add=True)
@@ -149,17 +156,8 @@ class Order(models.Model):
         return f"Order {self.id} - {self.get_status_display()}"
 
 
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        if self.status == 'En cours':
-            Order.objects.filter(status='En cours', server=self.server).update(status='Mis en pause')
-            self.consume_ingredients()
 
-        if self.montant_restant < 1 :
-            Order.objects.filter(status_de_paiement='soldée')
-            
 
-        super(Order, self).save(*args, **kwargs)
 
     def get_total(self):
         """Calculates total of all items in the order."""
@@ -173,47 +171,16 @@ class Order(models.Model):
         if not self.client:
             raise ValueError("La commande n'a pas de client associé.")
 
-        if amount <= self.montant_restant:  # Vérifie si le montant du paiement partiel ne dépasse pas le montant restant dû.
-            if self.client.dette >= amount:  # Vérifie si la dette du client est suffisante pour le paiement.
-                self.montant_paye = self.montant_paye + amount  # Augmente le montant payé par le montant du paiement partiel.
-                self.montant_restant = self.montant_restant - amount  # Réduit le montant restant dû par le montant du paiement.
-                self.client.dette = self.client.dette - amount  # Réduit la dette du client par le montant du paiement.
-                self.update_amounts()  # Met à jour les montants, probablement pour recalculer ou ajuster d'autres valeurs.
-                self.client.save()  # Sauvegarde l'état mis à jour du client.
+        if not self.get_total() > int(amount) :  # Vérifie si le montant du paiement partiel ne dépasse pas le montant restant dû.
+                self.montant_remise = amount  # Augmente le montant payé par le montant du paiement partiel.
+                self.relicat = int(amount) - self.get_total()  # Réduit la dette du client par le montant du paiement.
                 self.save()  # Sauvegarde l'état mis à jour de la commande.
-            else:
-                raise ValueError("Le montant dépasse la dette du client.")  # Si le montant est supérieur à la dette, une erreur est levée.
         else:
-            raise ValueError("Le montant est supérieur au solde restant.")  # Si le montant est supérieur au montant restant, une erreur est levée.
+            raise ValueError("Sols insufisant.")  # Si le montant est supérieur au montant restant, une erreur est levée.
 
-    def total_remise(self):
-        total_discount_value = 0
-        total_discount_percentage = 0
-
-        # Pour chaque item dans la commande
-        for item in self.items.all():
-            discount_info = item.remise()
-            total_discount_value += discount_info['discount_value']
-            # Le pourcentage de remise globale est plus complexe à calculer en cumulé
-            # ici on somme juste les pourcentages de remise individuels
-            total_discount_percentage += discount_info['discount_percentage']
-
-        return {
-            'total_discount_value': total_discount_value,
-            'total_discount_percentage': total_discount_percentage
-        }
+   
     def consume_ingredients(self):
-            """ Met à jour le stock des ingrédients en fonction des produits commandés """
-            for order_item in self.items.all():
-                product = order_item.product
-                quantity_ordered = order_item.quantity
-
-                for product_ingredient in product.ingredients.all():
-                    ingredient = product_ingredient.ingredient
-                    quantity_needed = product_ingredient.quantity_required * quantity_ordered
-
-                    self._update_stock(ingredient, quantity_needed)
-
+          pass
     def _update_stock(self, ingredient, quantity_needed):
         """ Réduit le stock de l'ingrédient en fonction du FIFO """
         stock_entries = Ingredient.objects.filter(id=ingredient.id, quantity__gt=0).order_by("entry_date")
@@ -233,7 +200,8 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # product = models.ForeignKey(Product, on_delete=models.CASCADE, blank=True, null=True)
+    size = models.ForeignKey(productSize, on_delete=models.CASCADE, blank=True, null=True)
     custom_product_name = models.CharField(max_length=255, blank=True)
     custom_product_price =  MoneyField(
         max_digits=14, 
@@ -251,52 +219,42 @@ class OrderItem(models.Model):
 
     def get_product_price(self):
         """Returns custom price or product price."""
-        return self.custom_product_price.amount or self.product.price.amount
+        return self.custom_product_price.amount or self.size.price.amount
 
     def get_total(self):
         """Calculates total price for the item."""
         return self.get_product_price() * self.quantity
 
-    def remise(self):
-        # Suppose the Product model has a 'price' field
-        product_price = self.product.price  # Original product price
-        custom_price = self.custom_product_price  # Custom price, if any
-
-        if custom_price:  # If there's a custom price, calculate the discount
-            discount = product_price - custom_price
-            try :
-                discount_percentage = (discount / product_price) * 100
-            except ZeroDivisionError:
-                return {
-                    'discount_value': 0,
-                    'discount_percentage': 0
-                }
-            return {
-                'discount_value': discount,
-                'discount_percentage': discount_percentage
-            }
-        return {
-            'discount_value': 0,
-            'discount_percentage': 0
-        }
 
 
 
 
-    def __str__(self):
-        return f"{self.product.name} (x{self.quantity})"
+    # def __str__(self):
+    #     return f"{self.size.product.name} (x{self.quantity})"
 
     def save(self, *args, **kwargs):
         """Saves the item and updates the order's total."""
         if not self.custom_product_name:
-            self.custom_product_name = self.product.name
+            self.custom_product_name = self.size.product.name
         if self.custom_product_price is None:
-            self.custom_product_price = self.product.price
+            self.custom_product_price = self.size.product.price
         super().save(*args, **kwargs)
-        # self.order.update_amounts()
-        self.order.save(update_fields=['montant_restant', 'status_de_paiement'])
+       
 
-
+class Depense(models.Model):
+    name = models.CharField(("nom de la depense"), max_length=50)
+    date = models.DateTimeField(("Date de la depense"), auto_now_add=True)
+    note = models.TextField(("ajouter une note a la depense"),blank=True, null=True)
+    justification = models.FileField(("ajouter une piece jointe pour justifier  la depense"), upload_to=None, max_length=100)
+    amount = MoneyField(("Montant payé"), max_digits=12,  decimal_places=0, default_currency="XOF")
+    in_cash = models.BooleanField(("prende l'argent dans la caisse ?"), default=True)
+    
+    delete = models.BooleanField(("Supprimer la depense"), default=False)
+    def __str__(self):
+        return self.name
+    
+    
+    
 class Caisse(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     solde_initial = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

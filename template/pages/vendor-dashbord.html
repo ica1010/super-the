@@ -23,9 +23,9 @@
                             </a>
                             <h6><a href="javascript:void(0);">Tous les categories </a></h6>
                             <span>{{products.count}} produits </span>
-                  </li>
-                  {% for category in categories  %}
-                 
+                        </li>
+                        {% for category in categories %}
+
                         <li id="{{category.id}}">
                             <a href="javascript:void(0);">
                                 <img src="{{category.image.url}}" alt="Categories">
@@ -33,8 +33,8 @@
                             <h6><a href="javascript:void(0);">{{category.name}}</a></h6>
                             <span>{{category.products.count}} Produits</span>
                         </li>
-                           
-                  {% endfor %}
+
+                        {% endfor %}
                     </ul>
                     <div class="pos-products">
                         <div class="d-flex align-items-center justify-content-between">
@@ -44,56 +44,74 @@
                             <div class="tab_content active" data-tab="all">
                                 <div class="row">
                                     {% for product in products %}
-                                    <form id="{{ product.id }}" hx-post="{% url 'add_product_to_order' %}" 
-                                          hx-target="#order-items" method="post" class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="product_id" value="{{ product.id }}">
-                                
-                                        <div class="product-info default-cover card" hx-trigger="click" hx-post="{% url 'add_product_to_order' %}" hx-target="#order-items">
+                                    <div class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
+                                        <div class="product-info default-cover card" hx-trigger="click"
+                                            class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                             <a href="javascript:void(0);" class="img-bg" style="overflow:hidden">
                                                 <img src="{{ product.image.url }}" alt="Products">
-                                                <span><i data-feather="check" class="feather-16"></i></span>
                                             </a>
                                             <h6 class="cat-name">{{ product.code }}</h6>
                                             <h6 class="product-name">{{ product.name }}</h6>
-                                            <div class="d-flex align-items-center justify-content-between price">
-                                                <p>{{ product.price }}</p>
+                                        </div>
+                                        <div class="dropdown-menu menu-drop-user">
+                                            <div class="profilename">
+                                                {% for product in product.sizes.all %}
+                                                <hr class="m-0">
+                                                <form hx-post="{% url 'add_product_to_order' %}"
+                                                    hx-target="#order-items" method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                    <button type="submit"
+                                                        class="dropdown-item pb-0 w-100 pt-3 pb-3 px-3 ">
+                                                        {{ product.size }} ------------------- {{ product.price }}
+                                                    </button>
+                                                </form>
+                                                {% endfor %}
                                             </div>
                                         </div>
-                                    </form>
-                                {% endfor %}
-                                
+                                    </div>
+                                    {% endfor %}
+
                                 </div>
                             </div>
-                            {% for category in categories  %}
-                            
+                            {% for category in categories %}
+
                             <div class="tab_content" data-tab="{{category.id}}">
                                 <div class="row">
-                                    {% for product in category.products.all  %}
-                                    
-                                    <form id="{{ product.id }}" hx-post="{% url 'add_product_to_order' %}" 
-                                    hx-target="#order-items" method="post" class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
-                                  {% csrf_token %}
-                                  <input type="hidden" name="product_id" value="{{ product.id }}">
-                          
-                                  <div class="product-info default-cover card" hx-trigger="click" hx-post="{% url 'add_product_to_order' %}" hx-target="#order-items">
-                                      <a href="javascript:void(0);" class="img-bg" style="overflow:hidden">
-                                          <img src="{{ product.image.url }}" alt="Products">
-                                          <span><i data-feather="check" class="feather-16"></i></span>
-                                      </a>
-                                      <h6 class="cat-name">{{ product.code }}</h6>
-                                      <h6 class="product-name">{{ product.name }}</h6>
-                                      <div class="d-flex align-items-center justify-content-between price">
-                                          <p>{{ product.price }}</p>
-                                      </div>
-                                  </div>
-                              </form>
+                                    {% for product in category.products.all %}
 
-                                      
+                                    <div class="col-sm-2 col-md-6 col-lg-3 col-xl-3 pe-2">
+                                        <div class="product-info default-cover card" hx-trigger="click"
+                                            class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <a href="javascript:void(0);" class="img-bg" style="overflow:hidden">
+                                                <img src="{{ product.image.url }}" alt="Products">
+                                            </a>
+                                            <h6 class="cat-name">{{ product.code }}</h6>
+                                            <h6 class="product-name">{{ product.name }}</h6>
+                                        </div>
+                                        <div class="dropdown-menu menu-drop-user">
+                                            <div class="profilename">
+                                                {% for product in product.sizes.all %}
+                                                <hr class="m-0">
+                                                <form hx-post="{% url 'add_product_to_order' %}"
+                                                    hx-target="#order-items" method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                    <button type="submit"
+                                                        class="dropdown-item pb-0 w-100 pt-3 pb-3 px-3 ">
+                                                        {{ product.size }} ------------------- {{ product.price }}
+                                                    </button>
+                                                </form>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                                     {% endfor %}
                                 </div>
                             </div>
-                              
+
                             {% endfor %}
                         </div>
                     </div>
@@ -104,7 +122,7 @@
 
             </div>
         </div>
-        
+
     </div>
 </div>
 
@@ -131,9 +149,9 @@
                                 </div>
                             </div>
                             <div class="table-responsive" id="paused-orders-list">
-                                
-                                        {% include 'partials/paused_orders.html' %}
-                                    
+
+                                {% include 'partials/paused_orders.html' %}
+
                             </div>
                         </div>
                     </div>

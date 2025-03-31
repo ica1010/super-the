@@ -1,11 +1,12 @@
 {% extends 'base/base.html' %}
+{% load custom_tags %}
 {% load static %}
 {% block base %}
 {% include 'include/navbar.html' %}
 {% include 'include/sidebar.html' %}
 <div class="page-wrapper">
     <div class="content">
-       
+
         <div class="page-header">
             <div class="add-item d-flex">
                 <div class="page-btn" style="margin-right: 15px;">
@@ -45,7 +46,7 @@
                 <form action="sales-list.html">
                     <div class="invoice-box table-height"
                         style="max-width: 1600px;width:100%;overflow: auto;padding: 0;font-size: 14px;line-height: 24px;color: #555;">
-                        <div class="sales-details-items d-flex">
+                        <!-- <div class="sales-details-items d-flex">
                             <div class="details-item">
                                 <h6>Information du client</h6>
                                 <p>nom du client<br>
@@ -57,32 +58,30 @@
                                 <h6>information du vendeur</h6>
                                 <p>{{order.server}}<br>
                             </div>
-                        </div>
-                        <h5 class="order-text">Order Summary</h5>
+                        </div> -->
+                        <h5 class="order-text">Résumé de la commande</h5>
                         <div class="table-responsive no-pagination">
                             <table class="table  datanew">
                                 <thead>
                                     <tr>
                                         <th>Produit</th>
                                         <th>Quantité</th>
-                                        <th>Prix de vente promotionnel</th>
-                                        <th>Prix de vente normal</th>
-                                        <th>% de reduction</th>
+                                        <th>Montant</th>
                                         <th>Prix total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    
+
                                     {% for item in order.items.all  %}
                                     <tr>
                                         <td>
                                             <div class="productimgname">
                                                 <a href="javascript:void(0);"
                                                     class="product-img stock-img">
-                                                    <img src="{{item.product.category.image.url}}"
+                                                    <img src="{{item.size.product.image.url}}"
                                                         alt="product">
                                                 </a>
-                                                <a href="javascript:void(0);">{{item.product.category.name}} - {{item.custom_product_name}}</a>
+                                                <a href="javascript:void(0);">{{item.size.product.category.name}}</a>
                                             </div>
                                         </td>
                                         <td>
@@ -90,15 +89,13 @@
                                                 <input type="text" disabled  class="quntity-input" value="{{item.quantity}}">
                                             </div>
                                         </td>
-                                        <td>{{item.custom_product_price}} Franc Cfa</td>
-                                        <td>{{item.product.prix_de_vente}} Franc Cfa</td>
-                                        <td>{{item.remise.discount_percentage}} %</td>
-                                        <td>{{item.get_total}} Franc Cfa</td>
+                                        <td>{{item.size.price}} </td>
+                                        <td>{{item.get_total}} </td>
                                     </tr>
 
                                     {% endfor %}
-                                        
-                                    
+
+
                                 </tbody>
                             </table>
                         </div>
@@ -109,20 +106,16 @@
                                 <div class="total-order w-100 max-widthauto m-auto mb-4">
                                     <ul>
                                         <li>
-                                            <h4>Remise</h4>
-                                            <h5>{{order.total_remise.total_discount_value}} Franc Cfa</h5>
-                                        </li>
-                                        <li>
                                             <h4>Grand Total</h4>
-                                            <h5>{{order.get_total}} Franc Cfa</h5>
+                                            <h5>{{order.get_total}} </h5>
                                         </li>
                                         <li>
-                                            <h4>Somme Payé</h4>
-                                            <h5>{{order.montant_paye}} Franc Cfa</h5>
+                                            <h4>Montant remise</h4>
+                                            <h5>{{order.montant_remise}} </h5>
                                         </li>
                                         <li>
-                                            <h4>Somme Restante</h4>
-                                            <h5>{{order.montant_restant}} Franc Franc Cfa</h5>
+                                            <h4>Relicat</h4>
+                                            <h5>{{order.relicat}} </h5>
                                         </li>
                                     </ul>
                                 </div>
@@ -135,4 +128,3 @@
     </div>
 </div>
 {% endblock base %}
-    

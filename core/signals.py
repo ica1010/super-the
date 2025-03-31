@@ -68,11 +68,3 @@ def update_fournisseur_dette(sender, instance, created, **kwargs):
         
 
 # Met à jour le montant restant et montants payés lors de la création de la commande
-@receiver(post_save, sender=Order)
-def update_montant_restant(sender, instance, created, **kwargs):
-    if created:
-        instance.montant_restant = int(instance.get_total())
-        instance.save(update_fields=['montant_restant'])
-        client = Client.objects.get(id=instance.client.id)
-        client.dette += instance.montant_restant
-        client.save(update_fields=['dette'])

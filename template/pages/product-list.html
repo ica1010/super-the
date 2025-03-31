@@ -86,7 +86,6 @@
                                 <th class="no-sort">Noms</th>
                                 <th class="no-sort">Famille</th>
                                 <th class="no-sort">Code</th>
-                                <th class="no-sort">Prix</th>
                                 <th class="no-sort">Date</th>
                                 <th class="no-sort"></th>
                             </tr>
@@ -147,21 +146,9 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="size">Taille</label>
-                                    <!-- {{ form.size.label_tag }} -->
-                                    {{ form.size }}
-                                </div>
-
-                                <div class="mb-3">
                                     <!-- {{ form.category.label_tag }} -->
                                     <label for="category">Famille</label>
                                     {{ form.category }}
-                                </div>
-
-                                <div class="mb-3">
-                                    <!-- {{ form.price.label_tag }} -->
-                                    <label for="price">Prix</label>
-                                    {{ form.price }}
                                 </div>
 
                                 <div class="mb-3">
@@ -179,19 +166,15 @@
                             </div>
 
                             <div class="col-6">
-                                <center>
-                                    <h4>Recette</h4>
-                                </center>
-                                <hr>
                                 <table class="table">
                                     <thead>
                                         <tr>
                                             <th> 
-                                    <label for="Ingrédient">Ingrédient</label>
+                                    <label for="Ingrédient">Tailles</label>
 
                                             </th>
                                             <th>
-                                    <label for="Quantité">Quantité</label>
+                                    <label for="Quantité">Prix</label>
                                                 </th>
                                             <th>
                                                 
@@ -208,7 +191,7 @@
                                 <div class="py-3">
                                     <a href="javascript:void(0);" hx-get="{% url 'add_ingredient_row' %}"
                                         hx-target="#ingredient-table-body" hx-swap="beforeend" class="text-primary">
-                                        <i data-feather="plus-circle"></i> Ajouter un ingrédient
+                                        <i data-feather="plus-circle"></i> Ajouter une nouvelle taille
                                     </a>
                                 </div>
 
@@ -279,14 +262,6 @@
                                                 value="{{ product.name }}">
                                         </div>
 
-
-                                        <div class="mb-3">
-                                            <label for="size">Taille</label>
-                                            <input type="text" class="form-control" name="size" id="size" required
-                                                value="{{ product.size }}">
-                                        </div>
-
-
                                         <div class="mb-3">
                                             <label for="cat">Famille</label>
                                             <select name="cat" id="cat" class="form-control select" required>
@@ -299,11 +274,6 @@
                                             </select>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label for="prix">Prix</label>
-                                            <input type="text" name="prix" id="prix" class="form-control" required
-                                                value="{{ product.price.amount }}">
-                                        </div>
                                         <div class="mb-3">
                                             <!-- {{ form.image.label_tag }} -->
                                             <label for="image">Image</label>
@@ -322,19 +292,15 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <center>
-                                        <h4>Recette</h4>
-                                    </center>
-                                    <hr>
                                     <table class="table">
                                         <thead>
                                             <tr>
                                                 <th> 
-                                        <label for="Ingrédient">Ingrédient</label>
+                                        <label for="Ingrédient">Taille</label>
     
                                                 </th>
                                                 <th>
-                                        <label for="Quantité">Quantité</label>
+                                        <label for="Quantité">Prix</label>
                                                     </th>
                                                 <th>
                                                     
@@ -342,22 +308,25 @@
                                                     </th>
                                             </tr>
                                         </thead>
-                                        <tbody id="ingredient-table-body">
-                                            {% for pro_indredient in product.ingredients.all  %}
+                                        <tbody id="sizes-table-body">
+                                            {% for size in product.sizes.all  %}
                                             <tr>
                                                 <td>
-                                                    <select name="ingredient[]" class="form-control select">
-                                                        {% for ingredient2 in ingredients %}
-                                                        <option value="{{ ingredient2.id }}" {% if ingredient2.id == pro_indredient.ingredient.id %}
-                                                          selected
-                                                        {% endif %} required>{{ ingredient2.name }}</option>
-                                                        {% endfor %}
+                                                    <select name="sizes[]" required class="form-control select">
+                                                        <option 
+                                                        {% if size.size == 'Grand' %}
+                                                            selected
+                                                        {% endif %}
+                                                             >Grand</option>
+                                                             <option 
+                                                             {% if size.size == 'Petit' %}
+                                                                 selected
+                                                             {% endif %}
+                                                                  >Petit</option>
                                                     </select>
                                                 </td>
                                                 <td class="row">
-<div class="col-8"> <input type="number" class="form-control" value="{{pro_indredient.quantity_required}}" required name="quantity_required[]"></div> <center class="col-4">
-    {{pro_indredient.ingredient.unit}}
-</center>
+<div class="col-8"> <input type="number" class="form-control" required name="prices[]" value="{{size.price.amount}}"></div> 
                                                 </td>
                                                 <td>
                                                     <a href="javascript:void(0);" class="text-danger" onclick="this.closest('tr').remove();">
@@ -374,14 +343,61 @@
                                     <!-- Bouton pour ajouter une nouvelle ligne -->
                                     <div class="py-3">
                                         <a href="javascript:void(0);" hx-get="{% url 'add_ingredient_row' %}"
-                                            hx-target="#ingredient-table-body" hx-swap="beforeend" class="text-primary">
-                                            <i data-feather="plus-circle"></i> Ajouter un ingrédient
+                                            hx-target="#sizes-table-body" hx-swap="beforeend" class="text-primary">
+                                            <i data-feather="plus-circle"></i> Ajouter une taille
                                         </a>
                                     </div>
     
                                 </div>
                                
                             </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="modal  modal-md fade" id="eye-product-{{product.id}}">
+    <div class="modal-dialog edit- sales-modal">
+        <div class="modal-content">
+            <div class="page-wrapper p-0 m-0">
+                <div class="content p-0">
+                    <div class="page-header p-4 mb-0">
+                        <div class="add-item new-sale-items d-flex">
+                            <div class="page-title">
+                                <h4>{{product.name}} </h4>
+                            </div>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <table class="table table-bodered w-100 table-fit  mt-3 mb-3">
+                                    <thead>
+                                        <tr>
+                                            <th>Taille</th>
+                                            <th class="text-end">Montant</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in product.sizes.all %}
+                                        <tr>
+                                            <td>{{item.size}}</td>
+                                            <td class="text-end"> {{ item.price}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 

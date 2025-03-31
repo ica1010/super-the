@@ -1,13 +1,12 @@
 <tr>
     <td>
-        <select name="ingredient[]" class="form-control select">
-            {% for ingredient in ingredients %}
-            <option value="{{ ingredient.id }}" required>{{ ingredient.name }}</option>
-            {% endfor %}
+        <select name="sizes[]" required class="form-control select">
+            <option>Grand</option>
+            <option>Petit</option>
         </select>
     </td>
     <td>
-        <input type="number" class="form-control" required name="quantity_required[]">
+        <input type="number" class="form-control" required name="prices[]">
     </td>
     <td>
         <a href="javascript:void(0);" class="text-danger" onclick="this.closest('tr').remove();">

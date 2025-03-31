@@ -1,0 +1,166 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block base %}
+{% include 'include/navbar.html' %}
+{% include 'include/sidebar.html' %}
+<div class="page-wrapper">
+    <div class="content">
+
+        <div class="page-header">
+            <div class="add-item d-flex">
+                <div class="page-title">
+                    <h4>Liste des dépenses</h4>
+                </div>
+            </div>
+            <div class="page-btn">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#add-expense" class="btn btn-added">
+                    <i data-feather="plus-circle" class="me-2"></i> Nouvelle dépense
+                </a>
+            </div>
+        </div>
+
+        <div class="card table-list-card">
+            <div class="card-body">
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-input">
+                            <a href="javascript:void(0);" class="btn btn-searchset">
+                                <i data-feather="search" class="feather-search"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="search-path row">
+                        <input type="date" name="date_debut" id="date_debut" style="width: 170px;" class="form-control col-4">
+                        <input type="date" name="date_fin" id="date_fin" class="form-control col-4" style="width: 170px;">
+                        <a class="btn btn-filter" id="filter-btn">
+                            <i data-feather="filter" class="filter-icon"></i>
+                            <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-responsive product-list">
+                    <table class="table datanew" id="expense-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Montant</th>
+                                <th>Date</th>
+                                <th>En caisse ?</th>
+                                <th>Note</th>
+                                <th>Justificatif</th>
+                                <th class="no-sort">Menu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for depense in depenses %}
+                            <tr id="expense-{{ depense.id }}">
+                                <td>{{ depense.name }}</td>
+                                <td>{{ depense.amount }}</td>
+                                <td>{{ depense.date|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if depense.in_cash %}
+                                        Oui
+                                    {% else %}
+                                        Non
+                                    {% endif %}
+                                </td>
+                                <td>{{ depense.note }}</td>
+                                <td>
+                                    {% if depense.justification %}
+                                        <a href="{{ depense.justification.url }}" target="_blank">Voir</a>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="action-table-data">
+                                    <div class="edit-delete-action">
+                                        <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-expense-{{ depense.id }}">
+                                            <i data-feather="edit" class="feather-edit"></i>
+                                        </a>
+                                        <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#delete-expense-{{ depense.id }}">
+                                            <i data-feather="trash-2" class="feather-trash-2"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal d'ajout de dépense -->
+        <div class="modal fade" id="add-expense" tabindex="-1" aria-labelledby="addExpenseLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addExpenseLabel">Ajouter une dépense</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'add_expense' %}" method="post"   enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            {{ add_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals de modification de dépense -->
+        {% for depense in depenses %}
+        <div class="modal fade" id="edit-expense-{{ depense.id }}" tabindex="-1" aria-labelledby="editExpenseLabel{{ depense.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editExpenseLabel{{ depense.id }}">Modifier la dépense : {{ depense.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'update_expense' depense.id %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            {{ update_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Modals de suppression de dépense -->
+        {% for depense in depenses %}
+        <div class="modal fade" id="delete-expense-{{ depense.id }}" tabindex="-1" aria-labelledby="deleteExpenseLabel{{ depense.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteExpenseLabel{{ depense.id }}">Supprimer la dépense : {{ depense.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'delete_expense' depense.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir supprimer cette dépense ?</p>
+                            {{ delete_form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock base %}

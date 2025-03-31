@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Category, Ingredient, Order, OrderItem, Product, ProductIngredient, StockMovement
+from .models import Category, Depense, Ingredient, Order, OrderItem, Product, ProductIngredient, StockMovement, productSize
 from unfold.admin import TabularInline
 from pos.models import Caisse, CaisseGenerale, CaisseHistorique
 from django.contrib.admin import register
@@ -35,7 +35,10 @@ class OrderAdmin(ModelAdmin):
 admin.site.register(Order, OrderAdmin)
 
 admin.site.register(Product, ModelAdmin)
+admin.site.register(productSize, ModelAdmin)
 admin.site.register(Category,ModelAdmin)
+admin.site.register(Depense, ModelAdmin)
+
 
 @register(Ingredient)
 class IngredientAdmin(ModelAdmin):

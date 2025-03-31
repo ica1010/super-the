@@ -7,7 +7,6 @@
     <td>{{product.name}}</td>
     <td><p>{{product.category.name}}</p></td>
     <td>{{product.code}}</td>
-    <td>{{product.price}}</td>
     <td> {{product.add_at}}</td>
     <td class="action-table-data" style="display: table-cell;">
         <div class="edit-delete-action">
@@ -15,7 +14,7 @@
             <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-product-{{product.id}}">
                 <i data-feather="edit" class="feather-edit"></i>
             </a>
-            <a class="me-2 edit-icon  p-2" href="">
+            <a class="me-2 edit-icon p-2" data-bs-toggle="modal" data-bs-target="#eye-product-{{product.id}}" >
                 <i data-feather="eye" class="feather-eye"></i>
             </a>
             <a hx-delete="{% url 'delete-product' product.id %}" 

@@ -27,30 +27,18 @@ def VendorDashboard(request):
     categories = Category.objects.all()
     products = Product.objects.all()
     today = timezone.now().date() 
-      # Commandes complètes
-    completed_orders = Order.objects.filter(status='Validé', created_at__date=today).prefetch_related('items__product')
-    # Commandes payées
+
     paused_orders = Order.objects.filter(status = 'Mis en pause')
     
-    close_orders = Order.objects.filter(status_de_payement='soldée', created_at__date=today).prefetch_related('items__product')
-    all_orders = completed_orders.union(close_orders) 
-    completed_orders_total = Order.objects.filter(status='Validé', created_at__date=today).annotate(
-        order_total=Sum('items__product__price', field='items__quantity')
-    ).aggregate(Sum('order_total'))['order_total__sum'] or 0
-    close_orders_total =  Order.objects.filter(status_de_payement='soldée').annotate(
-        order_total=Sum('items__product__price', field='items__quantity')
-    ).aggregate(Sum('order_total'))['order_total__sum'] or 0
+    close_orders = Order.objects.filter(status_de_payement='soldée', created_at__date=today).prefetch_related('items__size')
+
     
     
     context = {
         'clients': clients,
         'categories': categories,
         'paused_orders': paused_orders,
-        'completed_orders':completed_orders,
         'close_orders':close_orders,
-        'all_orders':all_orders,
-        'completed_orders_total':completed_orders_total,
-        'close_orders_total':close_orders_total,
         'products':products,
     }
 

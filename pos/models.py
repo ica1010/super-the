@@ -149,6 +149,7 @@ class Order(models.Model):
     montant_remise = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status_de_payement = models.CharField(max_length=50, blank=True)
     validated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
+    
     add_at = models.DateTimeField(auto_now_add=True)
     change_at = models.DateTimeField(auto_now=True)
 
@@ -156,7 +157,8 @@ class Order(models.Model):
         return f"Order {self.id} - {self.get_status_display()}"
 
 
-
+    def total_items_count(self):
+        return sum(item.quantity for item in self.items.all())
 
 
     def get_total(self):

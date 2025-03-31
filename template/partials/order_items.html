@@ -371,7 +371,8 @@
                     <br><br><br>
                     <div class="row">
                       <center>
-                        <p style="margin: 5px 0; text-align: center;font-size:20px">{{ forloop.counter }} - {{ order.items.count }}</p>
+                        {% increment_counter %} - {{order.total_items_count}}
+                        
                       </center>
                     </div>
                 </div>
@@ -382,6 +383,7 @@
     {% endif %}
 
 
+    
 </aside>
 
 <script>

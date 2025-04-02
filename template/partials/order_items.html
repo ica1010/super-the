@@ -354,31 +354,30 @@
 
 
     <div class="d-block">
-        {% for item in order.items.all %}
-            {% for i in item.quantity|times %}
-                <div class="" id="autocollant-{{ item.id }}" style="justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">
-                    <div class="row"> 
-                      <center>  <h1 style="margin: 0;width: 100%;">{{ order.id }}</h1></center>
-                    </div>
-                    <div  style="display: flex; justify-content: center; gap: 10px;">
-                        <center>
-                            <p style="margin: 5px 0; text-align: center;font-size:30px">{{ item.size.product.code }}</p>
-                        </center>
-                        <center>
-                            <p style="margin: 5px 0; text-align: center; font-size:30px">{{ item.size.size }}</p>
-                        </center>
-                    </div>
-                    <br><br><br>
-                    <div class="row">
-                      <center>
-                        {% increment_counter %} - {{order.total_items_count}}
-                        
-                      </center>
-                    </div>
+        {% for sticker in stickers %}
+            <div class="" id="autocollant-{{ sticker.order_id }}" style="justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">
+                <div class="row"> 
+                    <center><h1 style="margin: 0;width: 100%;">{{ sticker.order_id }}</h1></center>
                 </div>
-            {% endfor %}
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <center>
+                        <p style="margin: 5px 0; text-align: center;font-size:30px">{{ sticker.product_code }}</p>
+                    </center>
+                    <center>
+                        <p style="margin: 5px 0; text-align: center; font-size:30px">{{ sticker.size }}</p>
+                    </center>
+                </div>
+                <br><br><br>
+                <div class="row">
+                    <center>
+                        {{ sticker.counter }} - {{ sticker.total }}
+                    </center>
+                </div>
+            </div>
         {% endfor %}
     </div>
+    
+    
 
     {% endif %}
 

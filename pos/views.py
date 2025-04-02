@@ -632,10 +632,26 @@ def add_product_to_order(request):
        
         
         order.save()
+        
+        
+        stickers = []
+        counter = 0
+        total_items_count = sum(item.quantity for item in order.items.all())  # Total d'étiquettes à générer
+
+        for item in order.items.all():
+            for _ in range(item.quantity):
+                counter += 1
+                stickers.append({
+                    'order_id': order.id,
+                    'product_code': item.size.product.code,
+                    'size': item.size.size,
+                    'counter': counter,
+                    'total': total_items_count
+                })
 
         
         if request.headers.get("HX-Request"):
-            return render(request, "partials/order_items.html", {"order": order, "clients": clients})
+            return render(request, "partials/order_items.html", {"order": order, "clients": clients ,  'stickers': stickers,})
         return redirect("vendor-dashboard", order_id=order.id)
 
     return HttpResponse(status=405)
@@ -1004,41 +1020,52 @@ def cash_expense(request):
     return render(request, 'pages/depense.html' ,context )
 
 
+# Vue principale
+def cash_expense(request):
+    depenses = Depense.objects.filter(delete=False)
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    if date_debut and date_fin:
+        depenses = depenses.filter(date__range=[date_debut, date_fin])
+    
+    update_forms = {dep.id: DepenseUpdateForm(instance=dep) for dep in depenses}
+    
+    context = {
+        'depenses': depenses,
+        'add_form': DepenseAddForm(),
+        'delete_form': DepenseDeleteForm(),
+        'update_forms': update_forms
+    }
+    return render(request, 'pages/depense.html', context)
+
+
+# Ajouter une dépense
 def add_expense(request):
     if request.method == 'POST':
         form = DepenseAddForm(request.POST, request.FILES)
-        try:
+        if form.is_valid():
             form.save()
             messages.success(request, "Dépense ajoutée avec succès !")
-        except Exception as e:
-            messages.error(request, f"Erreur {e}")
+        else:
+            messages.error(request, "Erreur lors de l'ajout de la dépense.")
     return redirect('depense')
 
-
+# Mettre à jour une dépense
 def update_expense(request, id):
     depense = get_object_or_404(Depense, id=id)
-    
     if request.method == 'POST':
         form = DepenseUpdateForm(request.POST, request.FILES, instance=depense)
         if form.is_valid():
             form.save()
-            messages.success(request, "Dépense mise à jour avec succès !")
+            messages.success(request, "Dépense mise à jour !")
         else:
-            messages.error(request, "Erreur lors de la modification de la dépense.")
-    
+            messages.error(request, "Erreur lors de la mise à jour.")
     return redirect('depense')
 
-
+# Suppression logique avec HTMX
 def delete_expense(request, id):
     depense = get_object_or_404(Depense, id=id)
-    
-    if request.method == 'POST':
-        form = DepenseDeleteForm(request.POST)
-        if form.is_valid() and form.cleaned_data['confirm']:
-            depense.delete = True
-            depense.save()
-            messages.success(request, "Dépense supprimée avec succès !")
-        else:
-            messages.error(request, "Veuillez cocher la case pour confirmer la suppression.")
-
-    return redirect('depense')
+    depense.delete = True
+    depense.save()
+    return HttpResponse("")

@@ -244,7 +244,7 @@ class OrderItem(models.Model):
        
 
 class Depense(models.Model):
-    name = models.CharField(("nom de la depense"), max_length=50)
+    name = models.CharField(("nom de la depense"), max_length=150)
     date = models.DateTimeField(("Date de la depense"), auto_now_add=True)
     note = models.TextField(("ajouter une note a la depense"),blank=True, null=True)
     justification = models.FileField(("ajouter une piece jointe pour justifier  la depense"), upload_to=None, max_length=100)

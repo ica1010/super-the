@@ -77,43 +77,20 @@ class IngredientForm(forms.ModelForm):
         
         
 
-# Formulaire pour l'ajout d'une dépense
 class DepenseAddForm(forms.ModelForm):
     class Meta:
         model = Depense
-        # On n'inclut pas le champ "date" (auto_now_add) et "delete" (pour la suppression)
-        fields = ['name', 'note', 'justification', 'amount', 'in_cash']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'justification': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'in_cash': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
+        fields = ['name', 'amount', 'justification']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Nom'})
 
-# Formulaire pour la modification d'une dépense
+
 class DepenseUpdateForm(forms.ModelForm):
     class Meta:
         model = Depense
-        # Même champs que pour l'ajout ; la date ne se modifie pas et la suppression est gérée à part
-        fields = ['name', 'note', 'justification', 'amount', 'in_cash']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'justification': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'in_cash': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
+        fields = ['name', 'amount', 'justification']
 
-# Formulaire pour confirmer la suppression d'une dépense
-class DepenseDeleteForm(forms.ModelForm):
-    confirm = forms.BooleanField(
-        required=True,
-        label="Confirmer la suppression",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    )
-    
-    class Meta:
-        model = Depense
-        # Aucun champ du modèle n'est modifié ici ; seul le champ de confirmation est utilisé
-        fields = []
+class DepenseDeleteForm(forms.Form):
+    depense_id = forms.IntegerField(widget=forms.HiddenInput())

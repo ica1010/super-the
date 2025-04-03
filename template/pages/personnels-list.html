@@ -124,8 +124,7 @@
                     </div>
                     <div class="card">
                         <div class="card-body">
-                            <form method="post" hx-post="{% url 'user-list' %}" hx-target="#user-list"
-                                hx-swap="innerHTML">
+                            <form method="post" action="{% url 'user-list' %}" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="row">
 
@@ -193,6 +192,8 @@
                                             </div>
                                             {% endif %}
                                         </div>
+
+                                        
                                     </div>
 
 
@@ -287,6 +288,8 @@
                                             </div>
                                             {% endif %}
                                         </div>
+
+                                       
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">Enregistrer</button>

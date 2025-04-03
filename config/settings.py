@@ -16,7 +16,23 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
+sentry_sdk.init(
+    dsn="https://f1ea723ccf275a3e22759c890cc90010@o4508924075966464.ingest.us.sentry.io/4509087979077632",
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    profiles_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+    
+)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -68,6 +84,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,7 +92,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_htmx.middleware.HtmxMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'personnels.middlewares.RestrictCashierMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -83,7 +100,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['template'],
+        'DIRS': [os.path.join(BASE_DIR, "template")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -91,6 +108,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media', 
                 'pos.context_processor.default',
                 
             ],
@@ -149,30 +167,32 @@ USE_L10N = True
 
 # URL pour accéder aux fichiers statiques (ex. : /static/)
 STATIC_URL = '/static/'
-
-# URL pour accéder aux fichiers médias (ex. : /media/)
-MEDIA_URL = '/media/'
-
-# Répertoire local pour stocker les fichiers statiques collectés (pour production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Répertoire où Django va collecter les fichiers statiques pour le déploiement
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Répertoire où Django va stocker les fichiers médias (par exemple : vidéos, images téléchargées)
+# Fichiers médias
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-
-# Configuration de WhiteNoise pour servir les fichiers statiques en production
-if not DEBUG:
+STATIC_URL = '/static/'
+ 
+if not DEBUG:  # Appliquer WhiteNoise uniquement en production
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Sécurité du contenu statique et médias
-# Utilisez 'django.contrib.staticfiles' pour gérer les fichiers statiques
 
-# En mode production (DEBUG=False), assurez-vous que les fichiers sont collectés avec 'collectstatic'
-if not DEBUG:
-    # Configuration pour la production
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'personnels.User'
 LOGIN_REDIRECT_URL = 'vendor-dashboard'  # Redirection après connexion réussie
@@ -180,6 +200,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 PHONENUMBER_DEFAULT_REGION = 'TG'
 ASGI_APPLICATION = 'config.asgi.application'
+
 
 CHANNEL_LAYERS = {
     'default': {

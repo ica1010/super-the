@@ -11,7 +11,5 @@ urlpatterns = [
     path('auth/', include('personnels.urls')),
     path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
 ]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT, show_indexes=True) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

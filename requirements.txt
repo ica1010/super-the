@@ -73,3 +73,6 @@ zopfli==0.2.3
 django-money
 django-measurement
 pint
+sentry-sdk
+
+

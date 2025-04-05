@@ -178,21 +178,6 @@ STATIC_URL = '/static/'
 if not DEBUG:  # Appliquer WhiteNoise uniquement en production
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'personnels.User'
 LOGIN_REDIRECT_URL = 'vendor-dashboard'  # Redirection après connexion réussie

@@ -1,84 +1,84 @@
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
-from .forms import UserCreationForm
-from .models import User
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
-from django.shortcuts import render, get_object_or_404, redirect
+from .models import User
+from .forms import CustomUserChangeForm, CustomUserCreationForm
+from django.contrib.auth.forms import SetPasswordForm
 
-class UserCreateView(CreateView):
-    model = User
-    form_class = UserCreationForm
-    template_name = 'auth/create_user.html'
-    success_url = reverse_lazy('/')  # Redirige après la création
+@login_required(login_url='login')
+def create_user_view(request):
+    form = CustomUserCreationForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            try:
+                user = form.save()
+                messages.success(request, f"Utilisateur « {user.username} » créé avec succès.")
+                return redirect('user-list')
+            except Exception as e:
+                messages.error(request, f"Erreur inattendue : {e}")
+        else:
+            # on détaille les erreurs champ par champ
+            for field, errs in form.errors.items():
+                for err in errs:
+                    messages.error(request, f"{field} : {err}")
+    # si on arrive ici, c’est qu’on a des erreurs → on ré-affiche la liste + la modal ouverte
+    users = User.objects.all()
+    return redirect('user-list')
+
     
+def edit_user(request, id):
+    user = get_object_or_404(User, id=id)
+
+    if request.method == 'POST':
+        # Mise à jour des informations utilisateur
+        user.telephone = request.POST.get('telephone', user.telephone)
+        user.nom = request.POST.get('nom', user.nom)
+        user.prenoms = request.POST.get('prenoms', user.prenoms)
+        user.role = request.POST.get('role', user.role)
+
+        # Mise à jour du mot de passe si fourni
+        new_password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+
+        if new_password and new_password == password_confirm:
+            user.set_password(new_password)
+
+        # Sauvegarde des changements
+        user.save()
+
+        # Message de succès
+        messages.success(request, f'Utilisateur {user.nom} modifié avec succès !')
+
+        # Redirection vers la liste des utilisateurs
+        return redirect('user-list')  # Remplace 'user-list' par l'URL de ta liste
+
+    return redirect('user-list')  # Remplace 'user-list' par l'URL de ta liste
+ 
     
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('/')
+    
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # Redirige vers le tableau de bord
+            return redirect('dashboard')
         else:
             messages.error(request, 'Identifiants invalides. Veuillez réessayer.')
-
+    
     return render(request, 'auth/login.html')
-
 
 @login_required(login_url='login')
 def logout_view(request):
     logout(request)
     return redirect('login')
 
-
-
-def manage_permissions(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    all_permissions = Permission.objects.all()
-    user_permissions = user.user_permissions.all()
-    content_types = ContentType.objects.all()
-    permissions_data = []
-
-    for content_type in content_types:
-        permissions = Permission.objects.filter(content_type=content_type)
-        if permissions.exists():
-            permissions_data.append({
-                "module": content_type.model.capitalize(),
-                "permissions": {
-                    "create": permissions.filter(codename__startswith="add").exists(),
-                    "edit": permissions.filter(codename__startswith="change").exists(),
-                    "delete": permissions.filter(codename__startswith="delete").exists(),
-                    "view": permissions.filter(codename__startswith="view").exists(),
-                }
-            })
-    if request.method == "POST":
-        # Récupérer les permissions envoyées via le formulaire
-        selected_permissions_ids = request.POST.getlist('permissions')  # Liste des IDs des permissions sélectionnées
-        # Supprimer les valeurs vides (cela permet d'éviter les problèmes avec les champs vides)
-        selected_permissions_ids = [p for p in selected_permissions_ids if p]
-
-        # Si la liste de permissions sélectionnées n'est pas vide, appliquer les permissions
-        if selected_permissions_ids:
-            selected_permissions = Permission.objects.filter(id__in=selected_permissions_ids)
-            user.user_permissions.set(selected_permissions)  # Appliquer les permissions sélectionnées
-            messages.success(request, f'Les permissions de {user.username} ont été modifiées avec succès.')
-        else:
-            messages.error(request, 'Aucune permission sélectionnée.')
-
-        return redirect('user-list')  # Rediriger après la mise à jour
-
-    return render(request, 'pages/permissions.html', {
-        'user': user,
-        'all_permissions': all_permissions,
-        'user_permissions': user_permissions,
-        "permissions_data": permissions_data
-    })

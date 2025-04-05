@@ -31,6 +31,8 @@ def create_user_view(request):
     return redirect('user-list')
 
     
+
+@login_required(login_url='login')
 def edit_user(request, id):
     user = get_object_or_404(User, id=id)
 
@@ -61,11 +63,9 @@ def edit_user(request, id):
  
     
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('/')
     try:
-        # Si l'utilisateur est déjà connecté, on le redirige
-        if request.user.is_authenticated:
-            return redirect('/')
-
         if request.method == 'POST':
             username = request.POST.get('username', '').strip()
             password = request.POST.get('password', '').strip()

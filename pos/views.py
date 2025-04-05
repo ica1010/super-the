@@ -260,12 +260,12 @@ def update_product(request, id):
 def delete_product(request, id):
     product = get_object_or_404(Product, id=id)
     products = Product.objects.all()
-    if request.method == "DELETE":  # Accepter DELETE ici
-        product.delete()
-        if request.headers.get("HX-Request"):
-            return render(request, "partials/product-list.html", {"products": products})
-        return redirect("products-list")
-    return HttpResponse(status=405)
+   
+    product.delete()
+    if request.headers.get("HX-Request"):
+        return render(request, "partials/product-list.html", {"products": products})
+    messages.success(request, f"Produit {product.name} supprimée avec succès.")
+    return redirect("products-list")
 
 def CategoryList(request):
     categories = Category.objects.all()

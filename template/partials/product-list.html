@@ -17,12 +17,7 @@
             <a class="me-2 edit-icon p-2" data-bs-toggle="modal" data-bs-target="#eye-product-{{product.id}}" >
                 <i data-feather="eye" class="feather-eye"></i>
             </a>
-            <a hx-delete="{% url 'delete-product' product.id %}" 
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-target="#product-{{ product.id }}" 
-            hx-swap="outerHTML"
-            hx-confirm="Are you sure you want to delete this product?" 
-            class="confirm-text p-2">
+            <a href="{% url 'delete-product' product.id %}" class="p-2">
              <i data-feather="trash-2" class="feather-trash-2"></i>
          </a>
          

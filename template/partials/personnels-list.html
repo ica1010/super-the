@@ -25,10 +25,10 @@
         </a>
 
         <div class="edit-delete-action mx-2">
-            <form  method="post" hx-post="{% url 'user-delete' user.id %}" hx-target="#user-list" hx-swap="innerHTML" >
+            <form  method="post" action="{% url 'user-delete' user.id %}"  >
                 {% csrf_token %}
                 <button type="submit" id="btn-{{user.id}}" class="d-none"></button>
-                <a onclick="document.getElementById('btn-{{user.id}}').click();" href="javascript:void(0);" class="confirm-text p-2" type="submit">
+                <a onclick="document.getElementById('btn-{{user.id}}').click();" href="javascript:void(0);" type="submit">
                     <i data-feather="trash-2" class="feather-trash-2"></i>
                 </a>
             </form>

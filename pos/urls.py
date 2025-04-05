@@ -20,13 +20,13 @@ urlpatterns = [
     path('ingredient/delete/<pk>', views.ingredient_delete, name='ingredient_delete'),
     path('ajouter-un-produits', views.add_product, name='add-product'),
     path('changer-le-produit/<int:id>', views.update_product, name='update-product'),
-    path('supprimé-de-produit/<int:id>/', views.delete_product, name='delete-product'),
+    path('produit/delete/<int:id>', views.delete_product, name='delete-product'),
     
     
     path('list-des-category', views.CategoryList, name='category-list'),
     path('ajouter-une-category', views.add_Category, name='add-category'),
     path('changer-le-categorie/<int:id>', views.update_Category, name='update-category'),
-    path('supprimé-de-categorie/<int:id>/', views.delete_Category, name='delete-category'),
+    path('categorie/delete/<int:id>', views.delete_Category, name='delete-category'),
     
      path('add-ingredient-form/', views.add_ingredient_form, name='add_ingredient_row'),
     # path('reaprovisionnement/<int:id>', views.reaprovisionnement, name='reaprovisionnement'),

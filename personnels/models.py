@@ -7,7 +7,6 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('ADMIN', 'Administrateur'),
         ('CASHIER', 'Caissier'),
-        ('WAITER', 'Serveur'),
     ]
     nom = models.CharField(max_length=50,)
     prenoms = models.CharField(max_length=50 ,)

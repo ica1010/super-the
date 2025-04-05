@@ -282,11 +282,15 @@ def add_Category(request):
         if form.is_valid():
             form.save()
             categories = Category.objects.all()
-            return render(request, "partials/category-list.html", {"categories": categories})
+            messages.success(request, "Catégorie ajoutée avec succès !")
+            return redirect("category-list")
+
         else:
             # Retourner des erreurs de formulaire si nécessaire
-            return render(request, "partials/category-list.html", {"form": form}, status=400)
-    return JsonResponse({"error": "Invalid method"}, status=405)
+            return redirect("category-list")
+
+    return redirect("category-list")
+
 
 def update_Category(request, id):
     category = get_object_or_404(Category, id=id)
@@ -298,21 +302,20 @@ def update_Category(request, id):
         if image : 
             category.image = image
         category.save()
-        categories = Category.objects.all()
-        return render(request, "partials/category-list.html", {"categories": categories})
+        messages.success(request, "Catégorie mise à jour avec succès !")
+        # categories = Category.objects.all()
+        return redirect("category-list")
+
    
-    return JsonResponse({"error": "Invalid method"}, status=405)
+    return redirect("category-list")
+
 
 @csrf_exempt
 def delete_Category(request, id):
     category = get_object_or_404(Category, id=id)
-    categories = Category.objects.all()
-    if request.method == "DELETE":  # Accepter DELETE ici
-        category.delete()
-        if request.headers.get("HX-Request"):
-            return render(request, "partials/category-list.html", {"categories": categories})
-        return redirect("category-list")
-    return HttpResponse(status=405)
+    category.delete()
+    messages.success(request, f"Catégorie {category.name} supprimée avec succès.")
+    return redirect("category-list")
 
 def reaprovisionnement(request,id):
     

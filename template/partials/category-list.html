@@ -11,15 +11,13 @@
             <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-category-{{category.id}}">
                 <i data-feather="edit" class="feather-edit"></i>
             </a>
-        
-            <a hx-delete="{% url 'delete-category' category.id %}" 
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-            hx-target="#category-{{ category.id }}" 
-            hx-swap="outerHTML"
-            hx-confirm="Are you sure you want to delete this category?" 
-            class="confirm-text p-2">
-             <i data-feather="trash-2" class="feather-trash-2"></i>
-         </a>
+            <form action="{% url 'delete-category' category.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="d-none" id="btn-{{category.id}}"></button>
+                <a onclick="document.getElementById('btn-{{category.id}}').click();">
+                    <i data-feather="trash-2" class="feather-trash-2"></i>
+                </a>
+            </form>
 
         </div>
     </td>

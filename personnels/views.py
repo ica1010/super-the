@@ -61,20 +61,34 @@ def edit_user(request, id):
  
     
 def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('/')
-    
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
+    try:
+        # Si l'utilisateur est déjà connecté, on le redirige
+        if request.user.is_authenticated:
+            return redirect('/')
 
-        if user is not None:
-            login(request, user)
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Identifiants invalides. Veuillez réessayer.')
-    
+        if request.method == 'POST':
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+
+            # Vérifie que les champs ne sont pas vides
+            if not username or not password:
+                messages.warning(request, "Veuillez renseigner à la fois le nom d'utilisateur et le mot de passe.")
+                return render(request, 'auth/login.html')
+
+            # Tente d'authentifier l'utilisateur
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                messages.success(request, f"Bienvenue {user.get_full_name() or user.username} !")
+                return redirect('/')  # Redirige vers la page d'accueil ou dashboard
+            else:
+                messages.error(request, 'Nom d’utilisateur ou mot de passe invalide.')
+
+    except Exception as e:
+        # Logiquement tu peux logger l'erreur aussi ici pour le debug
+        messages.error(request, f"Une erreur inattendue s'est produite : {str(e)}")
+
     return render(request, 'auth/login.html')
 
 @login_required(login_url='login')

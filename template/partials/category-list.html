@@ -11,13 +11,9 @@
             <a class="me-2 p-2" data-bs-toggle="modal" data-bs-target="#edit-category-{{category.id}}">
                 <i data-feather="edit" class="feather-edit"></i>
             </a>
-            <form action="{% url 'delete-category' category.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="d-none" id="btn-{{category.id}}"></button>
-                <a onclick="document.getElementById('btn-{{category.id}}').click();">
+                <a href="{% url 'delete-category' category.id %}">
                     <i data-feather="trash-2" class="feather-trash-2"></i>
                 </a>
-            </form>
 
         </div>
     </td>

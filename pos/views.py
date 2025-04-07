@@ -246,24 +246,19 @@ def update_product(request, id):
                 except Exception as e:
                     print(f"Erreur lors de la mise à jour des tailles : {e}")
                     messages.error(request, f"Erreur lors de la mise à jour des tailles : {e}")
-                    return redirect("update-product", id=id)
+                    return redirect("products-list")
             
-        
-        
-        
-        products = Product.objects.all()
-        return render(request, "partials/product-list.html", {"products": products})
+        return redirect("products-list")
+
    
-    return JsonResponse({"error": "Invalid method"}, status=405)
+    return redirect("products-list")
+
 
 @csrf_exempt
 def delete_product(request, id):
     product = get_object_or_404(Product, id=id)
     products = Product.objects.all()
-   
     product.delete()
-    if request.headers.get("HX-Request"):
-        return render(request, "partials/product-list.html", {"products": products})
     messages.success(request, f"Produit {product.name} supprimée avec succès.")
     return redirect("products-list")
 

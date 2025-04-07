@@ -353,15 +353,15 @@
     </div>
 
 
-    <div class="d-none">
+    <div class="" id="fake-print" >
         {% for sticker in stickers %}
             <div class="" id="autocollant-{{ sticker.order_id }}" style="justify-content: center; border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background-color: #f9f9f9;">
                 <div class="row"> 
-                    <center><h1 style="margin: 0;width: 100%;">{{ sticker.order_id }}</h1></center>
+                    <center><h1 style="margin: 0;width: 100%;">{{ sticker.product_code }}</h1></center>
                 </div>
-                <div style="display: flex; justify-content: center; gap: 10px;">
+                <div style="display: flex; justify-content: center; gap: 10px;" class="pt-5">
                     <center>
-                        <p style="margin: 5px 0; text-align: center;font-size:30px">{{ sticker.product_code }}</p>
+                        <p style="margin: 5px 0; text-align: center;font-size:30px">{{ sticker.order_id }}</p>
                     </center>
                     <center>
                         <p style="margin: 5px 0; text-align: center; font-size:30px">{{ sticker.size }}</p>
@@ -376,6 +376,8 @@
             </div>
         {% endfor %}
     </div>
+
+    <button onclick="printDiv('fake-print')" class="btn btn-primary" >impprimer</button>
     
     
 
@@ -386,6 +388,15 @@
 </aside>
 
 <script>
+    function printDiv(divId) {
+        const div = document.getElementById(divId);
+        if (!div) return;
+        const originalBody = document.body.innerHTML;
+        document.body.innerHTML = div.innerHTML;
+        window.print();
+        document.body.innerHTML = originalBody;
+      }
+      
     function printReceipt() {
         if (!qz.websocket.isActive()) {
             console.log("Connexion à QZ Tray...");

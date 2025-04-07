@@ -92,7 +92,6 @@
                         </thead>
                         <tbody id="product-list">
                             <p id="error-message"></p>
-
                             {% include 'partials/product-list.html' %}
                         </tbody>
                     </table>
@@ -120,7 +119,8 @@
                         </div>
                     </div>
                     <div class="card">
-                        <form class="card-body row" action="{% url 'add-product' %}" method="post"     enctype="multipart/form-data">
+                        <form class="card-body row" action="{% url 'add-product' %}" method="post"
+                            enctype="multipart/form-data">
                             <div class="col-6">
                                 {% csrf_token %}
                                 {% if form.errors %}
@@ -169,17 +169,17 @@
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th> 
-                                    <label for="Ingrédient">Tailles</label>
+                                            <th>
+                                                <label for="Ingrédient">Tailles</label>
 
                                             </th>
                                             <th>
-                                    <label for="Quantité">Prix</label>
-                                                </th>
+                                                <label for="Quantité">Prix</label>
+                                            </th>
                                             <th>
-                                                
-                                    <label for="Action">Supprimer</label>
-                                                </th>
+
+                                                <label for="Action">Supprimer</label>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody id="ingredient-table-body">
@@ -198,8 +198,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <button type="submit"
-                                        class="btn btn-primary mt-5" style="width:100%;">
+                                    <button type="submit" class="btn btn-primary mt-5" style="width:100%;">
                                         Enregistrer
                                     </button>
                                 </div>
@@ -207,8 +206,8 @@
                         </form>
                     </div>
 
-                    
-                  
+
+
 
                 </div>
             </div>
@@ -236,9 +235,8 @@
                     </div>
                     <div class="card">
                         <div class="card-body">
-                            <form hx-post="{% url 'update-product' product.id %}" hx-swap="innerHTML"
-                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#product-list"
-                                enctype="multipart/form-data" class="row">
+                            <form action="{% url 'update-product' product.id %}" method="post"
+                                enctype="multipart/form-data" class="row" id="update-product">
                                 {% csrf_token %}
                                 <div class="col-6">
                                     {% if form.errors %}
@@ -266,7 +264,7 @@
                                             <label for="cat">Famille</label>
                                             <select name="cat" id="cat" class="form-control select" required>
                                                 {% for cat in category %}
-                                                <option value="{{ cat.id }}" {% if product.category.id == cat.id %}
+                                                <option value="{{ cat.id }}" {% if product.category.id==cat.id %}
                                                     selected {% endif %}>
                                                     {{ cat.name }}
                                                 </option>
@@ -288,68 +286,67 @@
                                         </div>
 
 
-                                        <button type="submit" class="btn btn-primary w-100">Changer le produit</button>
+                                      
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th> 
-                                        <label for="Ingrédient">Taille</label>
-    
+                                                <th>
+                                                    <label for="Ingrédient">Taille</label>
+
                                                 </th>
                                                 <th>
-                                        <label for="Quantité">Prix</label>
-                                                    </th>
+                                                    <label for="Quantité">Prix</label>
+                                                </th>
                                                 <th>
-                                                    
-                                        <label for="Action">Supprimer</label>
-                                                    </th>
+
+                                                    <label for="Action">Supprimer</label>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody id="sizes-table-body">
-                                            {% for size in product.sizes.all  %}
+                                            {% for size in product.sizes.all %}
                                             <tr>
                                                 <td>
                                                     <select name="sizes[]" required class="form-control select">
-                                                        <option 
-                                                        {% if size.size == 'Grand' %}
-                                                            selected
-                                                        {% endif %}
-                                                             >Grand</option>
-                                                             <option 
-                                                             {% if size.size == 'Petit' %}
-                                                                 selected
-                                                             {% endif %}
-                                                                  >Petit</option>
+                                                        <option {% if size.size=='Grand' %} selected {% endif %}>Grand
+                                                        </option>
+                                                        <option {% if size.size=='Petit' %} selected {% endif %}>Petit
+                                                        </option>
                                                     </select>
                                                 </td>
                                                 <td class="row">
-<div class="col-8"> <input type="number" class="form-control" required name="prices[]" value="{{size.price.amount}}"></div> 
+                                                    <div class="col-8"> <input type="number" class="form-control"
+                                                            required name="prices[]" value="{{size.price.amount}}">
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <a href="javascript:void(0);" class="text-danger" onclick="this.closest('tr').remove();">
+                                                    <a href="javascript:void(0);" class="text-danger"
+                                                        onclick="this.closest('tr').remove();">
                                                         <i class="fa fa-times"></i>
                                                     </a>
                                                 </td>
                                             </tr>
-                                            
+
                                             {% endfor %}
                                             {% include "partials/ingredient_form.html" %}
                                         </tbody>
                                     </table>
-    
+
                                     <!-- Bouton pour ajouter une nouvelle ligne -->
                                     <div class="py-3">
-                                        <a href="javascript:void(0);"   hx-get="{% url 'add_ingredient_row' %}"
+                                        <a href="javascript:void(0);" hx-get="{% url 'add_ingredient_row' %}"
                                             hx-target="#sizes-table-body" hx-swap="beforeend" class="btn btn-primary">
                                             <i data-feather="plus-circle"></i> Ajouter une taille
                                         </a>
                                     </div>
-    
+
                                 </div>
-                               
+                                <button type="" class="btn btn-primary w-100"
+                                onclick="document.getElementById('update-product').submit();">Changer le
+                                produit</button>
                             </form>
                         </div>
                     </div>

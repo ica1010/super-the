@@ -10,7 +10,8 @@ from measurement.measures import Mass
 from django_measurement.models import MeasurementField
 from django.contrib.auth.models import Permission
 from djmoney.money import Money
-
+from django.utils.timezone import now
+from django.db.models import Max
 
 UNIT_CHOICES = [
     ("Litre", "Litre"),
@@ -148,10 +149,31 @@ class Order(models.Model):
     relicat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     montant_remise = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status_de_payement = models.CharField(max_length=50, blank=True)
+    daily_sequence = models.PositiveIntegerField(null=True, blank=True)
     validated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
     
     add_at = models.DateTimeField(auto_now_add=True)
     change_at = models.DateTimeField(auto_now=True)
+
+
+    def save(self, *args, **kwargs):
+        if self.daily_sequence is None:
+            today = now().date()
+
+            # Récupérer la dernière valeur de la séquence pour aujourd'hui
+            last_sequence = (
+                Order.objects.filter(created_at__date=today)
+                .aggregate(Max('daily_sequence'))['daily_sequence__max'] or 0
+            )
+
+            self.daily_sequence = last_sequence + 1
+
+        # Optionnel : génère une référence avec la séquence
+        """    if not self.reference:
+        today_str = now().strftime('%Y%m%d')
+        self.reference = f"{today_str}-{self.daily_sequence:04d}"""
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Order {self.id} - {self.get_status_display()}"
@@ -225,7 +247,7 @@ class OrderItem(models.Model):
 
     def get_total(self):
         """Calculates total price for the item."""
-        return self.get_product_price() * self.quantity
+        return self.size.price.amount * self.quantity
 
 
 

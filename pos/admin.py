@@ -29,7 +29,7 @@ class OrderItemInline(TabularInline):  # Utilise un affichage en tableau pour le
     extra = 1  # Nombre de lignes supplémentaires vides
 
 class OrderAdmin(ModelAdmin):
-    list_display = ('id', 'server', 'created_at')
+    list_display = ('id', 'server', 'client', 'get_total','status','status_de_paiement','created_at')
     inlines = [OrderItemInline]  # Affiche les OrderItems sur la page de commande
 
 admin.site.register(Order, OrderAdmin)

@@ -20,16 +20,78 @@ from .models import Order, OrderItem
 from pos.models import Caisse, Product
 from crm.models import Client, Fournisseur
 from django.contrib import messages
-
+from django.db.models.functions import TruncHour
+from django.utils.timezone import localtime
+from django.db.models.functions import TruncHour
+from django.db.models import Sum, Count
+from datetime import timedelta
+from datetime import datetime
 # Create your views here.
+from django.utils.timezone import localtime
+from datetime import datetime, timedelta
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncHour
+from django.utils.timezone import localtime
+from datetime import datetime, timedelta
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncHour
+from django.db.models import F, Sum
+
+from datetime import datetime, timedelta
+from django.db.models import Count, Sum, F
+from django.db.models.functions import TruncHour
+from django.utils.timezone import localtime
+
 def OrdersList(request):
-    orders = Order.objects.all()
+    daterange = request.GET.get('daterange')
     
-    context ={
-        'orders':orders
+    if not daterange:
+        today_str = datetime.today().strftime('%Y-%m-%d')
+        daterange = f"{today_str} - {today_str}"
+        request.GET = request.GET.copy()
+        request.GET['daterange'] = daterange
+
+    start_str, end_str = daterange.split(' - ')
+    start_date = datetime.strptime(start_str.strip(), '%Y-%m-%d')
+    end_date = datetime.strptime(end_str.strip(), '%Y-%m-%d') + timedelta(days=1)
+
+    # Toujours définir orders ici
+    orders = Order.objects.filter(
+        created_at__range=(start_date, end_date)
+    ).exclude(items__isnull=True)
+
+    # Calcul du total avec F()
+    total_amount = OrderItem.objects.filter(order__in=orders).aggregate(
+        total=Sum(F('size__price') * F('quantity'))
+    )['total'] or 0
+
+    # Statistiques par heure
+    ordersc = (
+        orders.annotate(hour=TruncHour('created_at'))
+        .values('hour')
+        .annotate(nombre_commandes=Count('id'))
+        .order_by('hour')
+    )
+
+    orders_by_hour = []
+    for entry in ordersc:
+        hour_start = localtime(entry['hour'])
+        hour_end = hour_start + timedelta(hours=1)
+        orders_by_hour.append({
+            'hour_start': hour_start,
+            'hour_end': hour_end,
+            'nombre_commandes': entry['nombre_commandes']
+        })
+
+    context = {
+        'orders': orders,
+        'orders_by_hour': orders_by_hour,
+        'total_amount': total_amount,
+        'daterange': daterange
     }
-    
-    return render(request, 'pages/orders-list.html',context)
+
+    return render(request, 'pages/orders-list.html', context)
+
 
 def DeletedOrdersList(request):
     orders = Order.objects.prefetch_related('items__product').filter(delete =True)
@@ -617,7 +679,13 @@ def unpause_order(request, order_id):
 
 def add_product_to_order(request):
     """Ajoute un produit à la commande en cours du serveur."""
-    order, _ = Order.objects.get_or_create(server=request.user, status="En cours")
+    # Chercher une commande "En cours" sans items
+    order = Order.objects.filter(server=request.user, status="En cours").first()
+
+    # S'il n'y en a pas, on en crée une nouvelle
+    if not order:
+        order = Order.objects.create(server=request.user, status="En cours")
+
     clients = Client.objects.filter(disponible=True)
 
     if request.method == "POST":
@@ -640,7 +708,7 @@ def add_product_to_order(request):
             for _ in range(item.quantity):
                 counter += 1
                 stickers.append({
-                    'order_id': order.id,
+                    'order_id': order.daily_sequence ,
                     'product_code': item.size.product.code,
                     'size': item.size.size,
                     'counter': counter,

@@ -30,7 +30,7 @@ def VendorDashboard(request):
 
     paused_orders = Order.objects.filter(status = 'Mis en pause')
     
-    close_orders = Order.objects.filter(status_de_payement='soldée', created_at__date=today).prefetch_related('items__size')
+    close_orders = Order.objects.filter(status_de_payement='soldée', updated_at__date=today).prefetch_related('items__size')
 
     
     
